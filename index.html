@@ -393,9 +393,257 @@ textarea{resize:vertical;min-height:65px;}
 .tree-legend-title{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:6px;font-weight:600;}
 .tree-legend-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
 .tree-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+/* ═══════════════════════════════════════════════════
+   MOBILE RESPONSIVE — iPhone / small screen
+═══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── Body safe area ── */
+  body { padding-bottom: env(safe-area-inset-bottom); }
+
+  /* ── Header: hide desktop nav, show logo + data btn only ── */
+  header {
+    padding: 0 14px;
+    height: 52px;
+  }
+  .nav-tabs { display: none; }
+  .logo span { display: none; }
+  .logo { font-size: 18px; }
+
+  /* ── Bottom nav bar (mobile only) ── */
+  .mobile-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    height: calc(56px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 150;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .mobile-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 6px 4px;
+    transition: color 0.15s;
+  }
+  .mobile-nav-btn .mnav-icon { font-size: 20px; line-height: 1; }
+  .mobile-nav-btn.active { color: var(--accent); }
+
+  /* ── App area adjust for bottom nav ── */
+  .app { height: calc(100vh - 52px - 56px - env(safe-area-inset-bottom)); }
+
+  /* ── CLIENTS PAGE: stack sidebar + detail ── */
+  #page-clients { position: relative; }
+
+  .sidebar {
+    width: 100%;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
+  .sidebar.mob-hidden {
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+
+  .main {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    padding: 16px 14px;
+    z-index: 5;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
+  .main.mob-visible {
+    transform: translateX(0);
+  }
+
+  /* Back button in detail view */
+  .mob-back-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 14px;
+  }
+
+  /* ── Stats bar: 2 columns on mobile ── */
+  .stats-bar { grid-template-columns: 1fr 1fr; display: grid; }
+
+  /* ── Detail header: stack name + actions ── */
+  .detail-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .action-row { flex-wrap: wrap; gap: 6px; }
+  .action-row .btn { font-size: 12px; padding: 6px 10px; }
+  .detail-name { font-size: 22px; }
+
+  /* ── Info grid: 2 cols on mobile ── */
+  .info-grid { grid-template-columns: 1fr 1fr; }
+  .info-card.span2 { grid-column: span 2; }
+
+  /* ── Revenue: summary 2 cols ── */
+  .rev-summary { grid-template-columns: 1fr 1fr; }
+  .rev-page { padding: 14px; }
+  .rev-toolbar { gap: 7px; }
+  .rev-toolbar-title { font-size: 14px; }
+  .rev-filter-group { gap: 3px; }
+  .rev-filter-group label { display: none; }
+
+  /* ── Transaction table → card layout ── */
+  .txn-table thead { display: none; }
+  .txn-table, .txn-table tbody, .txn-table tr, .txn-table td { display: block; width: 100%; }
+  .txn-table tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .txn-table tr:hover td { background: transparent; }
+  .txn-table td {
+    border: none;
+    padding: 2px 0;
+    font-size: 12px;
+  }
+  .txn-table td:first-child { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+  .txn-table td:last-child { position: absolute; top: 10px; right: 10px; }
+  .txn-amount { font-size: 16px !important; }
+
+  /* ── Revenue sub tabs ── */
+  .rev-sub-tabs { flex-wrap: wrap; gap: 4px; }
+  .rev-sub-tab { font-size: 12px; padding: 6px 10px; }
+
+  /* ── Modals: full screen bottom sheet on mobile ── */
+  .modal-overlay { align-items: flex-end; }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 18px;
+    animation: slideUpSheet 0.25s ease;
+  }
+  @keyframes slideUpSheet {
+    from { transform: translateY(100%); opacity: 0.5; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .modal::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  /* ── Form grid: single col on mobile ── */
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: 1; }
+
+  /* ── Toast: bottom center ── */
+  .toast {
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    right: 50%;
+    transform: translateX(50%);
+    white-space: nowrap;
+  }
+
+  /* ── Filter buttons: smaller ── */
+  .filter-btn { padding: 4px 4px; font-size: 10px; }
+
+  /* ── Sidebar header compact ── */
+  .sidebar-header { padding: 12px 12px 8px; }
+
+  /* ── Add btn row ── */
+  .add-btn-wrap { padding: 10px 12px; flex-direction: row !important; }
+  .add-btn { font-size: 12px; padding: 9px 8px; }
+
+  /* ── Client item touch-friendly ── */
+  .client-item { padding: 13px 14px; }
+  .client-item-name { font-size: 14px; }
+
+  /* ── Section title compact ── */
+  .section-title { font-size: 14px; margin-top: 18px; }
+
+  /* ── Family tree toolbar ── */
+  .tree-toolbar { padding: 10px 12px; gap: 8px; }
+  .tree-toolbar-title { font-size: 15px; }
+  .tree-search-box { width: 100%; }
+  #tree-focus-client { width: 100%; }
+
+  /* ── Client revenue podium ── */
+  .client-rev-podium { flex-direction: column; align-items: center; }
+  .podium-card { min-width: 0; width: 100%; max-width: 280px; }
+
+  /* ── Revenue by client table ── */
+  #cr-table thead { display: none; }
+  #cr-table, #cr-table tbody, #cr-table tr, #cr-table td { display: block; width: 100%; }
+  #cr-table tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 7px;
+    padding: 10px 12px;
+  }
+  #cr-table td { border: none; padding: 2px 0; font-size: 12px; }
+
+  /* ── Hide data export description text ── */
+  .data-option-desc { display: none; }
+
+  /* ── vCard modal ── */
+  .vcard-filter-row { flex-direction: column; align-items: flex-start; }
+  .vcard-client-list { max-height: 35vh; }
+
+  /* ── Bar chart compact ── */
+  .bar-chart { height: 80px; }
+  .bar-pair { height: 66px; }
+}
+
+/* Desktop: hide mobile nav */
+.mobile-nav { display: none; }
+.mob-back-btn { display: none; }
 </style>
 </head>
 <body>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-btn active" id="mnav-clients" onclick="mobileSwitchTab('clients',this)">
+    <span class="mnav-icon">👥</span>Clients
+  </button>
+  <button class="mobile-nav-btn" id="mnav-revenue" onclick="mobileSwitchTab('revenue',this)">
+    <span class="mnav-icon">💰</span>Revenue
+  </button>
+  <button class="mobile-nav-btn" id="mnav-familytree" onclick="mobileSwitchTab('familytree',this)">
+    <span class="mnav-icon">🌳</span>Family
+  </button>
+  <button class="mobile-nav-btn" id="mnav-data" onclick="openDataModal()">
+    <span class="mnav-icon">⬆⬇</span>Data
+  </button>
+</nav>
 
 <header>
   <div class="logo">ClientFlow <span>by Rohan Bali</span></div>
@@ -441,6 +689,7 @@ textarea{resize:vertical;min-height:65px;}
     </div>
   </div>
   <div class="main" id="client-main">
+    <button class="mob-back-btn" id="mob-back-btn" onclick="mobileBackToList()">‹ All Clients</button>
     <div id="client-stats"></div>
     <div id="client-detail">
       <div class="welcome">
@@ -2775,6 +3024,80 @@ function moveTreeTooltip(e, rect){
   tip.style.left=tx+'px'; tip.style.top=ty+'px';
 }
 function hideTreeTooltip(){ document.getElementById('tree-tooltip').style.display='none'; }
+
+// ═══════════════════════════════════════
+// MOBILE NAVIGATION & LAYOUT
+// ═══════════════════════════════════════
+function isMobile(){ return window.innerWidth <= 768; }
+
+function mobileSwitchTab(tab, el){
+  // Sync desktop nav tabs
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  const deskBtn = document.querySelector(`.nav-tab[onclick*="${tab}"]`);
+  if(deskBtn) deskBtn.classList.add('active');
+  // Sync mobile nav
+  document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  // Switch page
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='revenue')    renderRevenue();
+  if(tab==='clients')    { renderClientList(); mobileShowList(); }
+  if(tab==='familytree') renderFamilyTree();
+}
+
+function mobileShowList(){
+  if(!isMobile()) return;
+  const sidebar = document.querySelector('.sidebar');
+  const main    = document.getElementById('client-main');
+  sidebar.classList.remove('mob-hidden');
+  main.classList.remove('mob-visible');
+  document.getElementById('mob-back-btn').style.display='none';
+}
+
+function mobileShowDetail(){
+  if(!isMobile()) return;
+  const sidebar = document.querySelector('.sidebar');
+  const main    = document.getElementById('client-main');
+  sidebar.classList.add('mob-hidden');
+  main.classList.add('mob-visible');
+  document.getElementById('mob-back-btn').style.display='inline-flex';
+}
+
+function mobileBackToList(){
+  activeClientId = null;
+  mobileShowList();
+  renderClientList();
+}
+
+// Patch selectClient to trigger mobile slide
+const _origSelectClient = selectClient;
+function selectClient(id){
+  activeClientId = id;
+  aadhaarRevealed = {};
+  renderClientList();
+  renderClientDetail();
+  if(isMobile()) mobileShowDetail();
+}
+
+// Sync mobile nav with desktop tab switches
+const _origSwitchTab = switchTab;
+function switchTab(tab, el){
+  _origSwitchTab(tab, el);
+  document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
+  const mBtn = document.getElementById('mnav-'+tab);
+  if(mBtn) mBtn.classList.add('active');
+  if(tab==='clients' && isMobile()) mobileShowList();
+}
+
+// On resize, reset mobile-specific classes
+window.addEventListener('resize', ()=>{
+  if(!isMobile()){
+    document.querySelector('.sidebar').classList.remove('mob-hidden');
+    document.getElementById('client-main').classList.remove('mob-visible');
+    document.getElementById('mob-back-btn').style.display='none';
+  }
+});
 
 // INIT
 document.getElementById('search-input').addEventListener('input',renderClientList);
