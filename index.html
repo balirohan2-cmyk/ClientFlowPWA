@@ -574,6 +574,15 @@ textarea{resize:vertical;min-height:65px;}
   /* ── Filter buttons: smaller ── */
   .filter-btn { padding: 4px 4px; font-size: 10px; }
 
+  /* ── Sidebar: pad bottom to clear mobile nav bar ── */
+  .sidebar {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+  /* ── Add btn wrap: also pad so it never hides under nav ── */
+  .add-btn-wrap {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+  }
+
   /* ── Sidebar header compact ── */
   .sidebar-header { padding: 12px 12px 8px; }
 
