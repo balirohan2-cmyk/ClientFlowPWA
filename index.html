@@ -1,0 +1,2806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ClientFlow by Rohan Bali</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ClientFlow">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="theme-color" content="#c9a84c">
+<meta name="description" content="Client management for Shri Lal Ji Dharmarth Trust">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0e0b; --surface:#1a1814; --surface2:#242018; --border:#2e2a22;
+  --accent:#c9a84c; --accent2:#e8c97a; --text:#e8e0d0; --text2:#a09880;
+  --text3:#5a5245; --danger:#c0574a; --success:#5a9e6f; --radius:8px;
+  --income:#5a9e6f; --expense:#c0574a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--accent);}
+.logo span{color:var(--text2);font-weight:400;font-size:12px;margin-left:7px;font-family:'DM Sans',sans-serif;}
+.nav-tabs{display:flex;gap:3px;}
+.nav-tab{padding:6px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+.nav-tab:hover{color:var(--text);background:var(--surface2);}
+.nav-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+
+/* LAYOUT */
+.app{display:flex;flex:1;overflow:hidden;height:calc(100vh - 58px);}
+.page{display:none;flex:1;overflow:hidden;}
+.page.active{display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:265px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.sidebar-header{padding:16px 16px 10px;border-bottom:1px solid var(--border);}
+.search-box{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px 8px 32px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;}
+.search-box:focus{border-color:var(--accent);}
+.search-wrap{position:relative;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px;pointer-events:none;}
+.filter-row{display:flex;gap:4px;padding:8px 16px 0;}
+.filter-btn{flex:1;padding:4px 5px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;}
+.filter-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:500;}
+.client-list{flex:1;overflow-y:auto;padding:5px 0;}
+.client-list::-webkit-scrollbar{width:3px;}
+.client-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.client-item{padding:10px 16px;cursor:pointer;border-left:3px solid transparent;transition:all 0.15s;}
+.client-item:hover{background:var(--surface2);}
+.client-item.active{background:var(--surface2);border-left-color:var(--accent);}
+.client-item-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.client-item-meta{font-size:11px;color:var(--text3);display:flex;gap:5px;align-items:center;}
+.status-dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.status-dot.active{background:var(--success);}
+.status-dot.inactive{background:#5a7a9e;}
+.status-dot.dormant{background:#7a5a9e;}
+.empty-list{text-align:center;padding:32px 14px;color:var(--text3);font-size:13px;}
+.add-btn-wrap{padding:12px 16px;border-top:1px solid var(--border);}
+.add-btn{width:100%;padding:9px;background:var(--accent);color:var(--bg);border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.add-btn:hover{background:var(--accent2);}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:24px 28px;}
+.main::-webkit-scrollbar{width:3px;}
+.main::-webkit-scrollbar-thumb{background:var(--border);}
+
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);text-align:center;}
+.welcome-icon{font-size:40px;margin-bottom:12px;opacity:0.3;}
+.welcome h2{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--text2);margin-bottom:7px;}
+.welcome p{font-size:13px;}
+
+/* STATS */
+.stats-bar{display:flex;gap:12px;margin-bottom:20px;}
+.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;}
+.stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--accent);}
+
+/* DETAIL */
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
+.detail-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--text);line-height:1.2;}
+.detail-id{font-size:11px;color:var(--text3);margin-top:3px;font-family:monospace;}
+.action-row{display:flex;gap:7px;flex-shrink:0;}
+
+/* BUTTONS */
+.btn{padding:6px 13px;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;border:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:var(--bg);}
+.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--text2);color:var(--text);}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid var(--danger);}
+.btn-danger:hover{background:var(--danger);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{opacity:0.88;}
+.btn-sm{padding:4px 10px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+
+/* SECTION TITLES */
+.section-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--text2);margin-bottom:9px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-top:20px;display:flex;align-items:center;justify-content:space-between;}
+.section-title:first-of-type{margin-top:0;}
+
+/* INFO GRID */
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:5px;}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;}
+.info-card.full{grid-column:1/-1;}
+.info-card.span2{grid-column:span 2;}
+.info-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px;}
+.info-val{font-size:13px;color:var(--text);line-height:1.5;}
+.info-val a{color:var(--accent);text-decoration:none;}
+.kyc-val{font-family:monospace;font-size:12px;letter-spacing:1px;}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;}
+.badge.active{background:rgba(90,158,111,0.15);color:var(--success);}
+.badge.inactive{background:rgba(90,122,158,0.18);color:#7aabdd;}
+.badge.dormant{background:rgba(122,90,158,0.18);color:#b07ad4;}
+
+/* INTERACTION RECORDING */
+.interaction-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;position:relative;}
+.interaction-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.interaction-type-badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.itype-call{background:rgba(90,158,111,0.15);color:var(--success);}
+.itype-meeting{background:rgba(201,168,76,0.15);color:var(--accent);}
+.itype-email{background:rgba(90,130,200,0.15);color:#7aabdd;}
+.itype-visit{background:rgba(180,100,200,0.15);color:#c07ad4;}
+.itype-whatsapp{background:rgba(90,180,100,0.18);color:#6bc47a;}
+.itype-letter{background:rgba(200,150,80,0.15);color:#d4aa5a;}
+.itype-other{background:rgba(90,82,69,0.3);color:var(--text2);}
+.interaction-date{font-size:11px;color:var(--text3);}
+.interaction-outcome{font-size:11px;padding:1px 7px;border-radius:10px;background:var(--surface2);color:var(--text2);}
+.interaction-notes{font-size:13px;color:var(--text);line-height:1.55;margin-top:4px;}
+.interaction-followup{font-size:11px;color:var(--accent);margin-top:5px;}
+.interaction-del{position:absolute;top:9px;right:9px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;transition:color 0.15s;}
+.interaction-del:hover{color:var(--danger);}
+
+/* FAMILY LINK */
+.family-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+.family-avatar{width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--accent);flex-shrink:0;}
+.family-info{flex:1;}
+.family-name{font-size:13px;font-weight:500;color:var(--text);}
+.family-relation{font-size:11px;color:var(--text3);}
+.family-unlink{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:3px 7px;border-radius:4px;transition:color 0.15s;}
+.family-unlink:hover{color:var(--danger);}
+
+/* NOTES */
+.note-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;margin-bottom:7px;position:relative;}
+.note-date{font-size:10px;color:var(--text3);margin-bottom:5px;}
+.note-text{font-size:13px;color:var(--text);line-height:1.6;padding-right:20px;}
+.note-del{position:absolute;top:9px;right:9px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;transition:color 0.15s;}
+.note-del:hover{color:var(--danger);}
+.add-note-row{display:flex;gap:7px;margin-top:8px;}
+.note-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 11px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:none;transition:border-color 0.2s;}
+.note-input:focus{border-color:var(--accent);}
+
+/* REVENUE PAGE */
+.rev-page{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+.rev-page::-webkit-scrollbar{width:3px;}
+.rev-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.rev-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+.rev-card.income-card{border-left:3px solid var(--income);}
+.rev-card.expense-card{border-left:3px solid var(--expense);}
+.rev-card.balance-card{border-left:3px solid var(--accent);}
+.rev-card.pending-card{border-left:3px solid var(--accent);}
+.rev-card-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px;}
+.rev-card-val{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;}
+.rev-card-val.income{color:var(--income);}
+.rev-card-val.expense{color:var(--expense);}
+.rev-card-val.bal-pos{color:var(--accent);}
+.rev-card-val.bal-neg{color:var(--danger);}
+.rev-card-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+.rev-toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+.rev-toolbar-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text2);flex:1;}
+.rev-filter-group{display:flex;gap:5px;align-items:center;}
+.rev-filter-group label{font-size:12px;color:var(--text3);}
+select.rev-sel,input.rev-date{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;}
+select.rev-sel:focus,input.rev-date:focus{border-color:var(--accent);}
+.txn-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);}
+.txn-table th{padding:9px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);font-weight:500;}
+.txn-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.txn-table tr:last-child td{border-bottom:none;}
+.txn-table tr:hover td{background:var(--surface2);}
+.txn-amount{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;}
+.txn-amount.income{color:var(--income);}
+.txn-amount.expense{color:var(--expense);}
+.txn-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;}
+.txn-badge.income{background:rgba(90,158,111,0.15);color:var(--income);}
+.txn-badge.expense{background:rgba(192,87,74,0.15);color:var(--expense);}
+.txn-badge.paid{background:rgba(90,158,111,0.15);color:var(--income);}
+.txn-badge.unpaid{background:rgba(201,168,76,0.15);color:var(--accent);}
+.txn-badge.partial{background:rgba(192,87,74,0.12);color:var(--danger);}
+.empty-txn{text-align:center;padding:36px;color:var(--text3);font-size:13px;}
+
+/* CHART */
+.chart-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+.chart-title{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--text2);margin-bottom:14px;}
+.bar-chart{display:flex;align-items:flex-end;gap:7px;height:110px;}
+.bar-group{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.bar-pair{display:flex;gap:2px;align-items:flex-end;height:96px;}
+.bar{border-radius:3px 3px 0 0;min-width:12px;transition:opacity 0.2s;cursor:default;}
+.bar:hover{opacity:0.75;}
+.bar.income-bar{background:var(--income);}
+.bar.expense-bar{background:var(--expense);}
+.bar-label{font-size:10px;color:var(--text3);}
+.chart-legend{display:flex;gap:14px;margin-top:8px;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);}
+.legend-dot{width:8px;height:8px;border-radius:2px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:640px;max-width:96vw;max-height:92vh;overflow-y:auto;padding:24px;animation:slideUp 0.2s ease;}
+.modal.modal-sm{width:480px;}
+.modal.modal-md{width:560px;}
+.modal::-webkit-scrollbar{width:3px;}
+.modal::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.form-section-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-weight:500;margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.form-section-label:first-of-type{margin-top:12px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:12px;color:var(--text2);font-weight:500;}
+input,select,textarea{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select option{background:var(--surface2);}
+textarea{resize:vertical;min-height:65px;}
+.field-hint{font-size:11px;color:var(--text3);margin-top:1px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:7px;margin-top:16px;padding-top:13px;border-top:1px solid var(--border);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 15px;font-size:13px;color:var(--text);z-index:300;display:none;align-items:center;gap:7px;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.toast.show{display:flex;}
+.toast.success .ti{color:var(--success);}
+.toast.error .ti{color:var(--danger);}
+
+/* SEARCH RESULTS in modal */
+.search-results{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);max-height:180px;overflow-y:auto;margin-top:4px;}
+.search-result-item{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background 0.1s;}
+.search-result-item:last-child{border-bottom:none;}
+.search-result-item:hover{background:var(--surface2);}
+.search-result-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+
+/* DATA IMPORT / EXPORT MODAL */
+.data-modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.data-modal-tab{padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;transition:all 0.15s;margin-bottom:-1px;}
+.data-modal-tab:hover{color:var(--text);}
+.data-modal-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.data-section{display:none;}
+.data-section.active{display:block;}
+.data-option-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
+.data-option-icon{font-size:22px;flex-shrink:0;}
+.data-option-info{flex:1;}
+.data-option-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.data-option-desc{font-size:12px;color:var(--text3);line-height:1.5;}
+.import-drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:28px;text-align:center;cursor:pointer;transition:border-color 0.2s;background:var(--bg);}
+.import-drop-zone:hover,.import-drop-zone.drag-over{border-color:var(--accent);background:rgba(201,168,76,0.04);}
+.import-drop-icon{font-size:32px;margin-bottom:8px;}
+.import-drop-text{font-size:13px;color:var(--text2);margin-bottom:4px;}
+.import-drop-hint{font-size:11px;color:var(--text3);}
+.import-preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;margin-top:12px;display:none;}
+.import-preview-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;}
+.import-stat-row{display:flex;gap:8px;flex-wrap:wrap;}
+.import-stat{background:var(--surface2);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--text);}
+.import-stat span{color:var(--accent);font-weight:600;}
+.import-mode-row{margin-top:12px;}
+.import-warning{background:rgba(192,87,74,0.12);border:1px solid rgba(192,87,74,0.3);border-radius:var(--radius);padding:10px 13px;font-size:12px;color:var(--danger);margin-top:10px;display:none;}
+
+/* DATA MODAL */
+/* CLIENT REVENUE LEADERBOARD */
+.rev-sub-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);padding-bottom:0;}
+.rev-sub-tab{padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;transition:all 0.15s;margin-bottom:-1px;}
+.rev-sub-tab:hover{color:var(--text);}
+.rev-sub-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.rev-sub-content{display:none;padding-top:16px;}
+.rev-sub-content.active{display:block;}
+
+.client-rev-podium{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:10px;margin-bottom:18px;align-items:end;}
+.podium-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px;text-align:center;cursor:pointer;transition:border-color 0.15s;}
+.podium-card:hover{border-color:var(--accent);}
+.podium-rank{font-size:20px;margin-bottom:5px;}
+.podium-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.podium-amount{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--income);}
+.podium-meta{font-size:11px;color:var(--text3);margin-top:3px;}
+.podium-1{border-top:3px solid #f4c542;}
+.podium-2{border-top:3px solid #c0c0c0;}
+.podium-3{border-top:3px solid #cd7f32;}
+
+.client-rev-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);}
+.client-rev-table th{padding:9px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);font-weight:500;}
+.client-rev-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.client-rev-table tr:last-child td{border-bottom:none;}
+.client-rev-table tr:hover td{background:var(--surface2);}
+.rev-bar-bg{background:var(--surface2);border-radius:3px;height:6px;overflow:hidden;width:100%;min-width:60px;}
+.rev-bar-fill{height:100%;border-radius:3px;background:var(--income);}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;background:var(--surface2);color:var(--text2);}
+.rank-badge.r1{background:rgba(244,197,66,0.2);color:#f4c542;}
+.rank-badge.r2{background:rgba(192,192,192,0.2);color:#c0c0c0;}
+.rank-badge.r3{background:rgba(205,127,50,0.2);color:#cd7f32;}
+.client-rev-filter-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.client-rev-filter-row label{font-size:12px;color:var(--text3);}
+.no-rev-clients{text-align:center;padding:36px;color:var(--text3);font-size:13px;}
+
+/* SIDEBAR VIEW TOGGLE */
+.sidebar-view-row{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 0;}
+.sidebar-view-label{font-size:11px;color:var(--text3);}
+.view-toggle{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px;}
+.view-btn{padding:3px 9px;border-radius:4px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.view-btn.active{background:var(--surface2);color:var(--text);}
+
+/* CITY GROUP IN SIDEBAR */
+.city-group-label{padding:8px 16px 3px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-weight:600;border-bottom:1px solid var(--border);margin-top:3px;display:flex;align-items:center;justify-content:space-between;}
+.city-group-count{font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;}
+.client-item-phone{font-size:11px;color:var(--success);margin-top:1px;font-family:monospace;letter-spacing:0.3px;}
+.client-item-phone a{color:var(--success);text-decoration:none;}
+
+/* VCARD EXPORT MODAL */
+.vcard-filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.vcard-filter-row label{font-size:12px;color:var(--text3);}
+.vcard-select-all-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;}
+.vcard-client-list{max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);}
+.vcard-client-list::-webkit-scrollbar{width:3px;}
+.vcard-client-list::-webkit-scrollbar-thumb{background:var(--border);}
+.vcard-client-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
+.vcard-client-row:last-child{border-bottom:none;}
+.vcard-client-row:hover{background:var(--surface2);}
+.vcard-client-row input[type="checkbox"]{width:auto;cursor:pointer;accent-color:var(--accent);}
+.vcard-client-name{font-size:13px;color:var(--text);flex:1;}
+.vcard-client-phone{font-size:11px;color:var(--text3);font-family:monospace;}
+.vcard-city-header{padding:5px 12px 3px;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent);background:var(--surface2);border-bottom:1px solid var(--border);font-weight:600;}
+.vcard-count-badge{display:inline-block;background:rgba(201,168,76,0.15);color:var(--accent);border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;margin-left:6px;}
+
+/* CLIENT PHOTO */
+.photo-upload-wrap{display:flex;align-items:center;gap:16px;margin-bottom:4px;}
+.photo-preview-circle{width:80px;height:80px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--text3);overflow:hidden;flex-shrink:0;cursor:pointer;transition:border-color 0.2s;position:relative;}
+.photo-preview-circle:hover{border-color:var(--accent);}
+.photo-preview-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.photo-preview-circle .photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.45);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:18px;color:#fff;}
+.photo-preview-circle:hover .photo-overlay{display:flex;}
+.photo-upload-info{flex:1;}
+.photo-upload-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.photo-upload-hint{font-size:11px;color:var(--text3);line-height:1.5;}
+.photo-upload-btns{display:flex;gap:6px;margin-top:7px;}
+
+/* avatar in detail header */
+.detail-avatar{width:64px;height:64px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--accent);overflow:hidden;flex-shrink:0;}
+.detail-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+
+/* avatar in sidebar list */
+.client-item-avatar{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--accent);overflow:hidden;flex-shrink:0;}
+.client-item-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.client-item-inner{display:flex;align-items:center;gap:8px;width:100%;}
+.client-item-text{flex:1;min-width:0;}
+
+/* FAMILY TREE PAGE */
+.tree-page{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.tree-toolbar{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.tree-toolbar-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text2);flex:1;}
+.tree-canvas-wrap{flex:1;overflow:hidden;position:relative;}
+#family-tree-svg{width:100%;height:100%;cursor:grab;}
+#family-tree-svg.dragging{cursor:grabbing;}
+.tree-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);text-align:center;gap:10px;}
+.tree-empty-icon{font-size:48px;opacity:0.25;}
+.tree-empty h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--text2);}
+.tree-empty p{font-size:13px;max-width:320px;line-height:1.6;}
+
+/* SVG node styles (injected inline but declared here for reference) */
+.tree-node-card{cursor:pointer;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));}
+.tree-node-card:hover rect{stroke-width:2;}
+.tree-link{fill:none;stroke:#2e2a22;stroke-width:1.5;}
+.tree-link-label{font-size:10px;font-family:'DM Sans',sans-serif;fill:#5a5245;pointer-events:none;}
+
+/* Node tooltip */
+.tree-tooltip{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text);pointer-events:none;z-index:50;max-width:220px;box-shadow:0 8px 24px rgba(0,0,0,0.5);display:none;}
+.tree-tooltip-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.tree-tooltip-row{display:flex;gap:6px;margin-top:3px;align-items:center;}
+.tree-tooltip-label{color:var(--text3);min-width:54px;}
+.tree-tooltip-val{color:var(--text);}
+
+/* Zoom controls */
+.tree-zoom-controls{position:absolute;bottom:18px;right:18px;display:flex;flex-direction:column;gap:5px;}
+.tree-zoom-btn{width:32px;height:32px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.tree-zoom-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Search highlight */
+.tree-search-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:160px;transition:border-color 0.2s;}
+.tree-search-box:focus{border-color:var(--accent);}
+
+/* Legend */
+.tree-legend{position:absolute;top:14px;left:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:11px;color:var(--text2);}
+.tree-legend-title{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:6px;font-weight:600;}
+.tree-legend-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.tree-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ClientFlow <span>by Rohan Bali</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('clients',this)">👥 Clients</button>
+    <button class="nav-tab" onclick="switchTab('revenue',this)">💰 Revenue</button>
+    <button class="nav-tab" onclick="switchTab('familytree',this)">🌳 Family Tree</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="btn btn-ghost btn-sm" onclick="openDataModal()" style="font-size:12px;padding:5px 12px;">⬆⬇ Data</button>
+    <div style="font-size:11px;color:var(--text3);" id="header-info"></div>
+  </div>
+</header>
+
+<div class="app">
+
+<!-- ═══ CLIENTS PAGE ═══ -->
+<div class="page active" id="page-clients">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-box" type="text" id="search-input" placeholder="Search name, PAN, phone…">
+      </div>
+      <div class="filter-row" style="margin-top:7px;">
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('active',this)">Active</button>
+        <button class="filter-btn" onclick="setFilter('inactive',this)">Inactive</button>
+        <button class="filter-btn" onclick="setFilter('dormant',this)">Dormant</button>
+      </div>
+      <div class="sidebar-view-row" style="margin-top:7px;">
+        <span class="sidebar-view-label">View by</span>
+        <div class="view-toggle">
+          <button class="view-btn active" id="view-btn-list" onclick="setSidebarView('list',this)">List</button>
+          <button class="view-btn" id="view-btn-city" onclick="setSidebarView('city',this)">City</button>
+        </div>
+      </div>
+    </div>
+    <div class="client-list" id="client-list"></div>
+    <div class="add-btn-wrap" style="display:flex;flex-direction:column;gap:7px;">
+      <button class="add-btn" onclick="openClientModal()">+ Add New Client</button>
+      <button class="add-btn" onclick="openVcardModal()" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);">📇 Export Contact Cards</button>
+    </div>
+  </div>
+  <div class="main" id="client-main">
+    <div id="client-stats"></div>
+    <div id="client-detail">
+      <div class="welcome">
+        <div class="welcome-icon">👥</div>
+        <h2>Select a Client</h2>
+        <p>Choose from the sidebar or add a new one.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REVENUE PAGE ═══ -->
+<div class="page" id="page-revenue">
+  <div class="rev-page" id="rev-main">
+    <div class="rev-summary" id="rev-summary"></div>
+    <div class="chart-section">
+      <div class="chart-title">Monthly Overview — Last 6 Months</div>
+      <div class="bar-chart" id="bar-chart"></div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--income)"></div>Monthly Income</div>
+      </div>
+    </div>
+    <div>
+      <div class="rev-sub-tabs">
+        <button class="rev-sub-tab active" onclick="switchRevTab('transactions',this)">📋 All Transactions</button>
+        <button class="rev-sub-tab" onclick="switchRevTab('by-client',this)">🏆 Revenue by Client</button>
+      </div>
+      <!-- TRANSACTIONS TAB -->
+      <div class="rev-sub-content active" id="rev-tab-transactions">
+        <div class="rev-toolbar" style="margin-top:14px;">
+          <div class="rev-toolbar-title" style="font-size:15px;">Transactions</div>
+
+          <div class="rev-filter-group"><label>Category</label>
+            <select class="rev-sel" id="rev-filter-cat" onchange="renderRevenue()"><option value="all">All Categories</option></select>
+          </div>
+          <div class="rev-filter-group"><label>Month</label>
+            <input type="month" class="rev-date" id="rev-filter-month" onchange="renderRevenue()">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openTxnModal()">+ Add Transaction</button>
+        </div>
+        <div style="margin-top:11px;" id="txn-table-wrap"></div>
+      </div>
+      <!-- BY CLIENT TAB -->
+      <div class="rev-sub-content" id="rev-tab-by-client">
+        <div class="client-rev-filter-row" style="margin-top:14px;">
+          <label>Show:</label>
+<select class="rev-sel" id="cr-filter-type" onchange="renderClientRevenue()" style="display:none;">
+            <option value="income">Income</option>
+          </select>
+          <label style="margin-left:8px;">Period:</label>
+          <select class="rev-sel" id="cr-filter-period" onchange="renderClientRevenue()">
+            <option value="all">All Time</option>
+            <option value="thisyear">This Year</option>
+            <option value="lastyear">Last Year</option>
+            <option value="thismonth">This Month</option>
+            <option value="last3">Last 3 Months</option>
+            <option value="last6">Last 6 Months</option>
+          </select>
+          <label style="margin-left:8px;">Show top:</label>
+          <select class="rev-sel" id="cr-filter-top" onchange="renderClientRevenue()">
+            <option value="10">Top 10</option>
+            <option value="20">Top 20</option>
+            <option value="all">All Clients</option>
+          </select>
+        </div>
+        <div id="cr-podium"></div>
+        <div id="cr-table" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FAMILY TREE PAGE ═══ -->
+<div class="page" id="page-familytree">
+  <div class="tree-page">
+    <div class="tree-toolbar">
+      <div class="tree-toolbar-title">🌳 Family Tree</div>
+      <input class="tree-search-box" id="tree-search" type="text" placeholder="Search client…" oninput="treeSearch(this.value)">
+      <select class="rev-sel" id="tree-focus-client" onchange="focusTreeOnClient(this.value)" style="min-width:160px;">
+        <option value="">— Focus on client —</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="resetTreeView()">↺ Reset View</button>
+      <button class="btn btn-primary btn-sm" onclick="switchTab('clients',document.querySelector('.nav-tab'))">+ Link Clients</button>
+    </div>
+    <div class="tree-canvas-wrap" id="tree-canvas-wrap">
+      <div class="tree-empty" id="tree-empty" style="display:none;">
+        <div class="tree-empty-icon">🌳</div>
+        <h3>No Family Links Yet</h3>
+        <p>Go to any client profile and use the <strong>+ Link Member</strong> button to connect family members. They will appear here as an interactive chart.</p>
+      </div>
+      <svg id="family-tree-svg"></svg>
+      <div class="tree-tooltip" id="tree-tooltip"></div>
+      <div class="tree-legend" id="tree-legend">
+        <div class="tree-legend-title">Status</div>
+        <div class="tree-legend-row"><div class="tree-legend-dot" style="background:#5a9e6f;"></div>Active</div>
+        <div class="tree-legend-row"><div class="tree-legend-dot" style="background:#7aabdd;"></div>Inactive</div>
+        <div class="tree-legend-row"><div class="tree-legend-dot" style="background:#b07ad4;"></div>Dormant</div>
+      </div>
+      <div class="tree-zoom-controls">
+        <button class="tree-zoom-btn" onclick="treeZoom(1.25)" title="Zoom In">+</button>
+        <button class="tree-zoom-btn" onclick="treeZoom(0.8)" title="Zoom Out">−</button>
+        <button class="tree-zoom-btn" onclick="resetTreeView()" title="Fit" style="font-size:12px;">⊞</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</div><!-- end .app -->
+
+<!-- ═══════════════════════════════════════
+     CLIENT MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="client-modal-overlay" onclick="closeClientModal(event)">
+<div class="modal">
+  <div class="modal-title" id="client-modal-title">Add New Client</div>
+  <div class="form-section-label">Profile Photo</div>
+  <div class="photo-upload-wrap">
+    <div class="photo-preview-circle" id="f-photo-preview" onclick="document.getElementById('f-photo-input').click()">
+      <span id="f-photo-placeholder">👤</span>
+      <img id="f-photo-img" src="" style="display:none;">
+      <div class="photo-overlay">✏️</div>
+    </div>
+    <div class="photo-upload-info">
+      <div class="photo-upload-title">Client Photo</div>
+      <div class="photo-upload-hint">Accepts JPG, PNG, WebP. Max 2 MB.<br>Photo is stored locally on your device.</div>
+      <div class="photo-upload-btns">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('f-photo-input').click()">📷 Choose Photo</button>
+        <button type="button" class="btn btn-danger btn-sm" id="f-photo-remove-btn" onclick="clearPhotoPreview()" style="display:none;">✕ Remove</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="f-photo-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none;" onchange="handlePhotoSelect(event)">
+  <div class="form-section-label">Basic Information</div>
+  <div class="form-grid">
+    <div class="form-group"><label>Full Name *</label><input type="text" id="f-name" placeholder="e.g. Ramesh Kumar Sharma"></div>
+    <div class="form-group"><label>Father's / Spouse Name</label><input type="text" id="f-guardian" placeholder="S/o, W/o, D/o…"></div>
+    <div class="form-group"><label>Date of Birth</label><input type="date" id="f-dob"></div>
+    <div class="form-group"><label>Gender</label>
+      <select id="f-gender"><option value="">— Select —</option><option>Male</option><option>Female</option><option>Other</option></select>
+    </div>
+
+    <div class="form-group"><label>Status</label>
+      <select id="f-status"><option value="active">Active</option><option value="inactive">Inactive</option><option value="dormant">Dormant</option></select>
+    </div>
+    <div class="form-group"><label>Client Since (Year)</label><input type="number" id="f-since" placeholder="2024" min="1900" max="2099"></div>
+  </div>
+  <div class="form-section-label">KYC / Identity Documents</div>
+  <div class="form-grid">
+    <div class="form-group"><label>PAN Number</label><input type="text" id="f-pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace;"><span class="field-hint">10-character alphanumeric</span></div>
+    <div class="form-group"><label>Aadhaar Number</label><input type="text" id="f-aadhaar" placeholder="XXXX XXXX XXXX" maxlength="14" style="letter-spacing:2px;font-family:monospace;"><span class="field-hint">12-digit (stored masked)</span></div>
+    <div class="form-group"><label>Voter ID (EPIC)</label><input type="text" id="f-voterid" placeholder="ABC1234567" style="text-transform:uppercase;font-family:monospace;"></div>
+    <div class="form-group"><label>Passport Number</label><input type="text" id="f-passport" placeholder="A1234567" style="text-transform:uppercase;font-family:monospace;"></div>
+  </div>
+  <div class="form-section-label">Contact Details</div>
+  <div class="form-grid">
+    <div class="form-group"><label>Primary Phone</label><input type="tel" id="f-phone" placeholder="+91 98765 43210"></div>
+    <div class="form-group"><label>Alternate Phone</label><input type="tel" id="f-phone2" placeholder="+91 98765 43210"></div>
+    <div class="form-group"><label>Email Address</label><input type="email" id="f-email" placeholder="email@example.com"></div>
+    <div class="form-group"><label>City / Town</label><input type="text" id="f-city" placeholder="Vrindavan, Delhi…"></div>
+    <div class="form-group"><label>State</label>
+      <select id="f-state"><option value="">— Select —</option><option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option><option>Bihar</option><option>Chhattisgarh</option><option>Goa</option><option>Gujarat</option><option>Haryana</option><option>Himachal Pradesh</option><option>Jharkhand</option><option>Karnataka</option><option>Kerala</option><option>Madhya Pradesh</option><option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option><option>Mizoram</option><option>Nagaland</option><option>Odisha</option><option>Punjab</option><option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option><option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option><option>West Bengal</option><option>Delhi (NCT)</option><option>Jammu &amp; Kashmir</option><option>Ladakh</option><option>Chandigarh</option><option>Puducherry</option></select>
+    </div>
+    <div class="form-group"><label>PIN Code</label><input type="text" id="f-pin" placeholder="110001" maxlength="6" style="font-family:monospace;letter-spacing:2px;"></div>
+    <div class="form-group full"><label>Full Address</label><textarea id="f-address" placeholder="House No., Street, Locality…" rows="2"></textarea></div>
+  </div>
+  <div class="form-section-label">Additional Info</div>
+  <div class="form-grid">
+    <div class="form-group full"><label>Notes / Description</label><textarea id="f-notes" placeholder="Any notes about this client…" rows="2"></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeClientModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveClient()">Save Client</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TRANSACTION MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="txn-modal-overlay" onclick="closeTxnModal(event)">
+<div class="modal modal-sm">
+  <div class="modal-title" id="txn-modal-title">Add Transaction</div>
+  <div class="form-section-label">Transaction Details</div>
+  <div class="form-grid">
+    <div class="form-group" style="display:none;"><label>Type</label>
+      <select id="t-type"><option value="income">Income</option></select>
+    </div>
+    <div class="form-group"><label>Amount (₹) *</label><input type="number" id="t-amount" placeholder="0.00" min="0" step="0.01"></div>
+    <div class="form-group"><label>Category *</label><select id="t-category"></select></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="t-date"></div>
+    <div class="form-group"><label>Payment Mode</label>
+      <select id="t-mode"><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="UPI">UPI</option><option value="Cheque">Cheque</option><option value="DD">Demand Draft</option><option value="Other">Other</option></select>
+    </div>
+    <div class="form-group"><label>Payment Status</label>
+      <select id="t-status"><option value="paid">Paid / Received</option><option value="unpaid">Unpaid / Pending</option><option value="partial">Partial</option></select>
+    </div>
+    <div class="form-group"><label>Linked Client</label><select id="t-client"><option value="">— None —</option></select></div>
+    <div class="form-group"><label>Reference / Invoice No.</label><input type="text" id="t-ref" placeholder="INV-001, Receipt No…"></div>
+    <div class="form-group full"><label>Description</label><textarea id="t-desc" placeholder="Details about this transaction…" rows="2"></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeTxnModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveTxn()">Save Transaction</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     INTERACTION MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="int-modal-overlay" onclick="closeIntModal(event)">
+<div class="modal modal-md">
+  <div class="modal-title" id="int-modal-title">Log Interaction</div>
+  <div class="form-section-label">Interaction Details</div>
+  <div class="form-grid">
+    <div class="form-group"><label>Type *</label>
+      <select id="i-type">
+        <option value="call">📞 Phone Call</option>
+        <option value="meeting">🤝 In-Person Meeting</option>
+        <option value="visit">🏠 Site Visit</option>
+        <option value="whatsapp">💬 WhatsApp</option>
+        <option value="email">📧 Email</option>
+        <option value="letter">✉️ Letter / Post</option>
+        <option value="other">📌 Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Date & Time *</label><input type="datetime-local" id="i-datetime"></div>
+    <div class="form-group"><label>Duration</label>
+      <select id="i-duration">
+        <option value="">— Select —</option>
+        <option value="5 min">5 minutes</option>
+        <option value="15 min">15 minutes</option>
+        <option value="30 min">30 minutes</option>
+        <option value="1 hour">1 hour</option>
+        <option value="2 hours">2 hours</option>
+        <option value="Half day">Half day</option>
+        <option value="Full day">Full day</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Outcome</label>
+      <select id="i-outcome">
+        <option value="Positive">✅ Positive</option>
+        <option value="Neutral">➖ Neutral</option>
+        <option value="Negative">❌ Negative</option>
+        <option value="Follow-up needed">🔔 Follow-up Needed</option>
+        <option value="Resolved">✔️ Resolved</option>
+        <option value="No Response">📵 No Response</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Purpose / Subject *</label><input type="text" id="i-subject" placeholder="e.g. Membership renewal, donation query…"></div>
+    <div class="form-group"><label>Conducted By</label><input type="text" id="i-by" placeholder="Staff name or your name"></div>
+    <div class="form-group full"><label>Notes / Summary</label><textarea id="i-notes" placeholder="What was discussed, decided, or agreed upon…" rows="3"></textarea></div>
+    <div class="form-group full"><label>Follow-up Date (if needed)</label><input type="date" id="i-followup" placeholder="Next follow-up date"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeIntModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveInteraction()">Save Interaction</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FAMILY LINK MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="family-modal-overlay" onclick="closeFamilyModal(event)">
+<div class="modal modal-sm">
+  <div class="modal-title" id="family-modal-title">Link Family Member</div>
+  <p style="font-size:13px;color:var(--text2);margin-top:4px;" id="family-modal-desc">Search and link a client as a family member.</p>
+  <input type="hidden" id="family-editing-link-id">
+  <div class="form-section-label" id="family-search-section-label">Search Client</div>
+  <div class="form-group" id="family-search-group">
+    <label>Client Name / PAN / Phone</label>
+    <input type="text" id="family-search" placeholder="Type to search clients…" oninput="searchFamilyClients()" autocomplete="off">
+    <div class="search-results" id="family-search-results" style="display:none;"></div>
+  </div>
+  <div id="family-selected-preview" style="margin-top:10px;"></div>
+  <div class="form-section-label">Relationship</div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Relation to Current Client</label>
+      <select id="family-relation">
+        <option value="Spouse">Spouse</option>
+        <option value="Father">Father</option>
+        <option value="Mother">Mother</option>
+        <option value="Son">Son</option>
+        <option value="Daughter">Daughter</option>
+        <option value="Brother">Brother</option>
+        <option value="Sister">Sister</option>
+        <option value="Grandfather">Grandfather</option>
+        <option value="Grandmother">Grandmother</option>
+        <option value="Uncle">Uncle</option>
+        <option value="Aunt">Aunt</option>
+        <option value="Nephew">Nephew</option>
+        <option value="Niece">Niece</option>
+        <option value="Cousin">Cousin</option>
+        <option value="In-Law">In-Law</option>
+        <option value="Guardian">Guardian</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Custom Relation Label</label>
+      <input type="text" id="family-custom-relation" placeholder="e.g. Elder Brother, Paternal Uncle…">
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeFamilyModal()">Cancel</button>
+    <button class="btn btn-primary" id="family-save-btn" onclick="saveFamilyLink()">Link Member</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DATA IMPORT / EXPORT MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="data-modal-overlay" onclick="closeDataModal(event)">
+<div class="modal modal-md">
+  <div class="modal-title">Import / Export Data</div>
+  <p style="font-size:12px;color:var(--text3);margin-top:3px;margin-bottom:14px;">All data is stored locally on your device. Use this to backup or restore.</p>
+  <div class="data-modal-tabs">
+    <button class="data-modal-tab active" onclick="switchDataTab('export',this)">⬇ Export / Backup</button>
+    <button class="data-modal-tab" onclick="switchDataTab('import',this)">⬆ Import / Restore</button>
+  </div>
+
+  <!-- EXPORT SECTION -->
+  <div class="data-section active" id="data-tab-export">
+    <div class="data-option-card">
+      <div class="data-option-icon">📦</div>
+      <div class="data-option-info">
+        <div class="data-option-title">Full Backup (All Data)</div>
+        <div class="data-option-desc">Exports clients, transactions, interactions, and family links in a single JSON file. Recommended for complete backup.</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="exportData('full')">Export All</button>
+    </div>
+    <div class="data-option-card">
+      <div class="data-option-icon">👥</div>
+      <div class="data-option-info">
+        <div class="data-option-title">Clients Only</div>
+        <div class="data-option-desc">Exports only the client records including KYC data, contact details, and notes.</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportData('clients')">Export</button>
+    </div>
+    <div class="data-option-card">
+      <div class="data-option-icon">💰</div>
+      <div class="data-option-info">
+        <div class="data-option-title">Transactions Only</div>
+        <div class="data-option-desc">Exports all income transaction records.</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportData('transactions')">Export</button>
+    </div>
+    <div class="data-option-card">
+      <div class="data-option-icon">🗂️</div>
+      <div class="data-option-info">
+        <div class="data-option-title">Interactions Only</div>
+        <div class="data-option-desc">Exports all client interaction and communication history records.</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportData('interactions')">Export</button>
+    </div>
+    <div style="margin-top:12px;padding:10px 13px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);">
+      <div id="export-summary" style="font-size:12px;color:var(--text3);"></div>
+    </div>
+  </div>
+
+  <!-- IMPORT SECTION -->
+  <div class="data-section" id="data-tab-import">
+    <div class="import-drop-zone" id="import-drop-zone" onclick="document.getElementById('import-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <div class="import-drop-icon">📂</div>
+      <div class="import-drop-text">Click to choose a JSON file, or drag & drop here</div>
+      <div class="import-drop-hint">Accepts .json files exported from ClientFlow</div>
+    </div>
+    <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="handleFileSelect(event)">
+
+    <div class="import-preview" id="import-preview">
+      <div class="import-preview-title">📋 File Preview</div>
+      <div class="import-stat-row" id="import-stat-row"></div>
+      <div class="import-mode-row">
+        <label style="font-size:12px;color:var(--text2);font-weight:500;display:block;margin-bottom:6px;">Import Mode</label>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:400;">
+            <input type="radio" name="import-mode" value="merge" checked style="width:auto;margin-top:2px;">
+            <span style="font-size:13px;color:var(--text);">Merge — Add new records, skip duplicates (safe)</span>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:400;">
+            <input type="radio" name="import-mode" value="replace" style="width:auto;margin-top:2px;">
+            <span style="font-size:13px;color:var(--text);">Replace — Overwrite existing data with imported data</span>
+          </label>
+        </div>
+      </div>
+      <div class="import-warning" id="import-warning">⚠️ Replace mode will permanently delete all existing data and replace it with the imported file. This cannot be undone.</div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:7px;">
+        <button class="btn btn-ghost btn-sm" onclick="clearImport()">✕ Clear</button>
+        <button class="btn btn-primary btn-sm" onclick="doImport()">⬆ Import Data</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer" style="margin-top:12px;">
+    <button class="btn btn-ghost" onclick="closeDataModal()">Close</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     VCARD EXPORT MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="vcard-modal-overlay" onclick="closeVcardModal(event)">
+<div class="modal modal-md">
+  <div class="modal-title">📇 Export Contact Cards (.vcf)</div>
+  <p style="font-size:12px;color:var(--text3);margin-top:3px;margin-bottom:14px;">Select clients to export as a .vcf file. Import the file into Apple Contacts, iPhone, or any vCard-compatible app.</p>
+
+  <div class="vcard-filter-row">
+    <label>Filter by City:</label>
+    <select class="rev-sel" id="vcard-city-filter" onchange="renderVcardList()">
+      <option value="all">All Cities</option>
+    </select>
+    <label style="margin-left:4px;">Status:</label>
+    <select class="rev-sel" id="vcard-status-filter" onchange="renderVcardList()">
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+      <option value="dormant">Dormant</option>
+    </select>
+  </div>
+
+  <div class="vcard-select-all-row">
+    <input type="checkbox" id="vcard-select-all" onchange="toggleSelectAllVcard(this)" style="width:auto;accent-color:var(--accent);cursor:pointer;">
+    <label for="vcard-select-all" style="font-size:13px;color:var(--text);cursor:pointer;font-weight:500;">Select All</label>
+    <span id="vcard-selected-count" style="margin-left:auto;font-size:12px;color:var(--text3);"></span>
+  </div>
+
+  <div class="vcard-client-list" id="vcard-client-list"></div>
+
+  <div style="margin-top:12px;padding:10px 13px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);font-size:12px;color:var(--text3);">
+    💡 The exported <strong style="color:var(--text)">.vcf</strong> file can be opened directly on iPhone or Mac to add contacts. Each client becomes a separate contact card with name, phone, email, address, and organisation.
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeVcardModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="exportVcards()">📥 Download .vcf File</button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"><span class="ti" id="toast-icon">✓</span><span id="toast-msg"></span></div>
+
+<script>
+// ═══════════════════════════
+// DATA
+// ═══════════════════════════
+let clients      = JSON.parse(localStorage.getItem('sljdt_clients')  || '[]');
+let transactions = JSON.parse(localStorage.getItem('sljdt_txns')     || '[]');
+let interactions = JSON.parse(localStorage.getItem('sljdt_ints')     || '[]');
+// familyLinks: [{id, clientA, clientB, relation, note, date}]
+let familyLinks  = JSON.parse(localStorage.getItem('sljdt_family')   || '[]');
+
+let activeClientId=null, editingClientId=null, editingTxnId=null, editingIntId=null;
+let currentFilter='all', aadhaarRevealed={};
+let familySelectedId=null;
+
+const INCOME_CATS  = ['Donation / Daan','Corpus Fund','Membership Fee','Pooja / Seva Charges','Rent Income','Event Income','Grant / Subsidy','Interest Income','Other Income'];
+
+function saveClients()   { localStorage.setItem('sljdt_clients', JSON.stringify(clients)); }
+function saveTxns()      { localStorage.setItem('sljdt_txns', JSON.stringify(transactions)); }
+function saveInts()      { localStorage.setItem('sljdt_ints', JSON.stringify(interactions)); }
+function saveFamily()    { localStorage.setItem('sljdt_family', JSON.stringify(familyLinks)); }
+function uid(p)          { return p+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,3).toUpperCase(); }
+function esc(s)          { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function cap(s)          { return s?s.charAt(0).toUpperCase()+s.slice(1):''; }
+function fmt(n)          { return '₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(iso)    { if(!iso)return''; try{ return new Date(iso).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){return iso;} }
+function fmtDateOnly(iso){ if(!iso)return''; try{ return new Date(iso).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){return iso;} }
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast-icon').textContent=type==='success'?'✓':'✕';
+  t.className='toast show '+type;
+  setTimeout(()=>t.className='toast',2600);
+}
+
+// ═══════════════════════════
+// TABS
+// ═══════════════════════════
+function switchTab(tab,el){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='revenue')renderRevenue();
+  if(tab==='clients')renderClientList();
+  if(tab==='familytree')renderFamilyTree();
+}
+
+// ═══════════════════════════
+// CLIENT LIST
+// ═══════════════════════════
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderClientList();
+}
+
+function renderClientList(){
+  const list=document.getElementById('client-list');
+  const q=document.getElementById('search-input').value.toLowerCase();
+  document.getElementById('header-info').textContent=clients.length+' clients · '+transactions.length+' txns';
+  const filtered=clients.filter(c=>{
+    const mf=currentFilter==='all'||c.status===currentFilter;
+    const ms=!q||c.name.toLowerCase().includes(q)||(c.pan||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.city||'').toLowerCase().includes(q);
+    return mf&&ms;
+  });
+  if(!filtered.length){list.innerHTML='<div class="empty-list">No clients found</div>';renderClientStats();return;}
+  list.innerHTML=filtered.map(c=>`
+    <div class="client-item ${c.id===activeClientId?'active':''}" onclick="selectClient('${c.id}')">
+      <div class="client-item-name">${esc(c.name)}</div>
+      <div class="client-item-meta"><span class="status-dot ${c.status}"></span>${esc(c.city||'')}</div>
+    </div>`).join('');
+  renderClientStats();
+}
+
+function renderClientStats(){
+  if(activeClientId){document.getElementById('client-stats').innerHTML='';return;}
+  const tot=clients.length,act=clients.filter(c=>c.status==='active').length,ina=clients.filter(c=>c.status==='inactive').length,dor=clients.filter(c=>c.status==='dormant').length;
+  document.getElementById('client-stats').innerHTML=`
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val">${tot}</div></div>
+      <div class="stat-card"><div class="stat-label">Active</div><div class="stat-val" style="color:var(--success)">${act}</div></div>
+      <div class="stat-card"><div class="stat-label">Inactive</div><div class="stat-val" style="color:#7aabdd">${ina}</div></div>
+      <div class="stat-card"><div class="stat-label">Dormant</div><div class="stat-val" style="color:#b07ad4">${dor}</div></div>
+    </div>
+    <div class="welcome" style="height:auto;padding-top:28px;">
+      <div class="welcome-icon">👥</div><h2>Select a Client</h2><p>Choose from the sidebar or add a new one.</p>
+    </div>`;
+}
+
+function selectClient(id){ activeClientId=id; aadhaarRevealed={}; renderClientList(); renderClientDetail(); }
+
+function maskAadhaar(v){
+  if(!v)return'—';
+  const d=v.replace(/\s/g,'');
+  return d.slice(0,4).replace(/\d/g,'✱')+' '+d.slice(4,8).replace(/\d/g,'✱')+' '+d.slice(8);
+}
+function calcAge(dob){
+  if(!dob)return'';
+  const d=new Date(dob),n=new Date();
+  let y=n.getFullYear()-d.getFullYear();
+  if(n<new Date(n.getFullYear(),d.getMonth(),d.getDate()))y--;
+  return ` (${y} yrs)`;
+}
+
+// ═══════════════════════════
+// CLIENT DETAIL
+// ═══════════════════════════
+function renderClientDetail(){
+  const c=clients.find(x=>x.id===activeClientId);
+  if(!c)return;
+
+  // linked transactions
+  const cTxns=transactions.filter(t=>t.clientId===c.id);
+  const cIncome=cTxns.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+
+  // interactions
+  const cInts=interactions.filter(i=>i.clientId===c.id).sort((a,b)=>new Date(b.datetime)-new Date(a.datetime));
+
+  // family links
+  const cFamily=familyLinks.filter(l=>l.clientA===c.id||l.clientB===c.id);
+
+  // notes
+  const notes=(c.notes_log||[]).map((n,i)=>`
+    <div class="note-item">
+      <div class="note-date">${n.date}</div>
+      <div class="note-text">${esc(n.text)}</div>
+      <button class="note-del" onclick="deleteNote('${c.id}',${i})">✕</button>
+    </div>`).join('')||'<div style="color:var(--text3);font-size:13px;padding:5px 0;">No notes yet.</div>';
+
+  // interactions HTML
+  const ITYPE_LABELS={call:'📞 Call',meeting:'🤝 Meeting',visit:'🏠 Visit',whatsapp:'💬 WhatsApp',email:'📧 Email',letter:'✉️ Letter',other:'📌 Other'};
+  const intsHtml=cInts.length?cInts.map((i,idx)=>`
+    <div class="interaction-item">
+      <div class="interaction-header">
+        <span class="interaction-type-badge itype-${i.type}">${ITYPE_LABELS[i.type]||cap(i.type)}</span>
+        <span class="interaction-date">${fmtDate(i.datetime)}</span>
+        ${i.duration?`<span class="interaction-outcome">${esc(i.duration)}</span>`:''}
+        ${i.outcome?`<span class="interaction-outcome">${esc(i.outcome)}</span>`:''}
+      </div>
+      ${i.subject?`<div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;">${esc(i.subject)}</div>`:''}
+      ${i.notes?`<div class="interaction-notes">${esc(i.notes)}</div>`:''}
+      ${i.by?`<div style="font-size:11px;color:var(--text3);margin-top:4px;">By: ${esc(i.by)}</div>`:''}
+      ${i.followup?`<div class="interaction-followup">🔔 Follow-up: ${fmtDateOnly(i.followup)}</div>`:''}
+      <button class="interaction-del" onclick="deleteInteraction('${i.id}')">✕</button>
+    </div>`).join('')
+    :'<div style="color:var(--text3);font-size:13px;padding:5px 0;">No interactions recorded yet.</div>';
+
+  // family HTML
+  const familyHtml=cFamily.length?cFamily.map(l=>{
+    const isA=l.clientA===c.id;
+    const otherId=isA?l.clientB:l.clientA;
+    const other=clients.find(x=>x.id===otherId);
+    const relation=isA?l.relation:(l.reverseRelation||l.relation);
+    const displayRelation=l.customRelation||relation;
+    if(!other)return'';
+    return `<div class="family-card">
+      <div class="family-avatar" style="overflow:hidden;">
+        ${other.photo ? `<img src="${other.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : other.name.charAt(0).toUpperCase()}
+      </div>
+      <div class="family-info">
+        <div class="family-name" style="cursor:pointer;color:var(--accent);" onclick="selectClient('${other.id}')">${esc(other.name)}</div>
+        <div class="family-relation">${esc(displayRelation)}${other.city?' · '+esc(other.city):''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-left:auto;flex-shrink:0;">
+        <button class="family-unlink" onclick="editFamilyLink('${l.id}')" title="Edit relation" style="background:rgba(201,168,76,0.1);border:1px solid var(--accent);color:var(--accent);font-size:11px;">✎</button>
+        <button class="family-unlink" data-unlink-id="${l.id}" onclick="unlinkFamily('${l.id}')" title="Remove link">✕</button>
+      </div>
+    </div>`;
+  }).join('')
+  :'<div style="color:var(--text3);font-size:13px;padding:5px 0;">No family members linked yet.</div>';
+
+  document.getElementById('client-stats').innerHTML='';
+  document.getElementById('client-detail').innerHTML=`
+    <div class="detail-header">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="detail-avatar">
+          ${c.photo
+            ? `<img src="${c.photo}" alt="${esc(c.name)}">`
+            : `<span>${esc(c.name.charAt(0).toUpperCase())}</span>`}
+        </div>
+        <div>
+          <div class="detail-name">${esc(c.name)}</div>
+          <div class="detail-id">${c.id} · Added ${c.added}</div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-ghost btn-sm" onclick="openClientModal('${c.id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">Delete</button>
+      </div>
+    </div>
+
+    ${cTxns.length?`<div class="stats-bar" style="margin-bottom:16px;">
+      <div class="stat-card" style="border-left:3px solid var(--income)"><div class="stat-label">Income</div><div class="stat-val" style="color:var(--income);font-size:20px;">${fmt(cIncome)}</div></div>
+      <div class="stat-card"><div class="stat-label">Interactions</div><div class="stat-val" style="font-size:20px;">${cInts.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-val" style="font-size:20px;">${cTxns.length}</div></div>
+    </div>`:''}
+
+    <div class="section-title">Basic Details</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-label">Status</div>
+        <div class="info-val">
+          <span class="badge ${c.status}"><span class="status-dot ${c.status}"></span>${cap(c.status)}</span>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;line-height:1.4;">
+            ${(()=>{
+              const last=getLastActivityDate(c.id);
+              if(!last) return 'No activity recorded';
+              const days=Math.floor((Date.now()-last)/86400000);
+              return days===0?'Activity today':`Last activity ${days} day${days!==1?'s':''} ago`;
+            })()}
+          </div>
+        </div>
+      </div>
+      <div class="info-card"><div class="info-label">Since</div><div class="info-val">${esc(c.since||'—')}</div></div>
+      <div class="info-card"><div class="info-label">Date of Birth</div><div class="info-val">${c.dob?new Date(c.dob).toLocaleDateString('en-IN')+calcAge(c.dob):'—'}</div></div>
+      <div class="info-card"><div class="info-label">Gender</div><div class="info-val">${esc(c.gender||'—')}</div></div>
+      <div class="info-card"><div class="info-label">Father's / Spouse</div><div class="info-val">${esc(c.guardian||'—')}</div></div>
+      ${c.initial_notes?`<div class="info-card full"><div class="info-label">Notes</div><div class="info-val">${esc(c.initial_notes)}</div></div>`:''}
+    </div>
+
+    <div class="section-title">KYC / Identity</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="info-label">PAN</div><div class="info-val kyc-val">${c.pan?esc(c.pan):'—'}</div></div>
+      <div class="info-card" style="cursor:${c.aadhaar?'pointer':'default'}" onclick="toggleAadhaar('${c.id}')">
+        <div class="info-label">Aadhaar ${c.aadhaar?'<span style="color:var(--accent);font-size:9px;">🔒 tap</span>':''}</div>
+        <div class="info-val kyc-val" id="aadhaar-el-${c.id}">${maskAadhaar(c.aadhaar)}</div>
+      </div>
+      <div class="info-card"><div class="info-label">Voter ID</div><div class="info-val kyc-val">${c.voterid?esc(c.voterid):'—'}</div></div>
+      <div class="info-card"><div class="info-label">Passport</div><div class="info-val kyc-val">${c.passport?esc(c.passport):'—'}</div></div>
+    </div>
+
+    <div class="section-title">Contact</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="info-label">Primary Phone</div><div class="info-val">${c.phone?`<a href="tel:${c.phone}">${esc(c.phone)}</a>`:'—'}</div></div>
+      <div class="info-card"><div class="info-label">Alternate Phone</div><div class="info-val">${c.phone2?`<a href="tel:${c.phone2}">${esc(c.phone2)}</a>`:'—'}</div></div>
+      <div class="info-card"><div class="info-label">Email</div><div class="info-val">${c.email?`<a href="mailto:${c.email}">${esc(c.email)}</a>`:'—'}</div></div>
+      <div class="info-card"><div class="info-label">City</div><div class="info-val">${esc(c.city||'—')}</div></div>
+      <div class="info-card"><div class="info-label">State</div><div class="info-val">${esc(c.state||'—')}</div></div>
+      <div class="info-card"><div class="info-label">PIN Code</div><div class="info-val kyc-val">${esc(c.pin||'—')}</div></div>
+      ${c.address?`<div class="info-card full"><div class="info-label">Address</div><div class="info-val">${esc(c.address)}</div></div>`:''}
+    </div>
+
+    <!-- FAMILY SECTION -->
+    <div class="section-title">
+      <span>👨‍👩‍👧 Family Members</span>
+      <button class="btn btn-ghost btn-sm" onclick="openFamilyModal('${c.id}')">+ Link Member</button>
+    </div>
+    <div id="family-section-${c.id}">${familyHtml}</div>
+
+    <!-- INTERACTIONS SECTION -->
+    <div class="section-title">
+      <span>🗂️ Interaction History</span>
+      <button class="btn btn-primary btn-sm" onclick="openIntModal('${c.id}')">+ Log Interaction</button>
+    </div>
+    <div id="interactions-list-${c.id}">${intsHtml}</div>
+
+    <!-- NOTES SECTION -->
+    <div class="section-title"><span>📝 Quick Notes</span></div>
+    <div id="notes-list">${notes}</div>
+    <div class="add-note-row">
+      <textarea class="note-input" id="new-note-input" placeholder="Add a quick note…" rows="2"></textarea>
+      <button class="btn btn-primary" onclick="addNote('${c.id}')" style="align-self:flex-end;">Add</button>
+    </div>
+  `;
+}
+
+function toggleAadhaar(id){
+  const c=clients.find(x=>x.id===id);if(!c||!c.aadhaar)return;
+  aadhaarRevealed[id]=!aadhaarRevealed[id];
+  const el=document.getElementById('aadhaar-el-'+id);
+  if(el)el.textContent=aadhaarRevealed[id]?c.aadhaar:maskAadhaar(c.aadhaar);
+}
+
+function addNote(id){
+  const inp=document.getElementById('new-note-input'),text=inp.value.trim();
+  if(!text)return;
+  const c=clients.find(x=>x.id===id);if(!c)return;
+  if(!c.notes_log)c.notes_log=[];
+  c.notes_log.unshift({text,date:new Date().toLocaleString('en-IN')});
+  saveClients();inp.value='';renderClientDetail();toast('Note added');
+}
+function deleteNote(id,idx){
+  const c=clients.find(x=>x.id===id);if(!c)return;
+  c.notes_log.splice(idx,1);saveClients();renderClientDetail();toast('Note deleted','error');
+}
+
+// ═══════════════════════════
+// CLIENT MODAL
+// ═══════════════════════════
+// ═══════════════════════════
+// PHOTO HANDLING
+// ═══════════════════════════
+let pendingPhotoData = null; // base64 string while modal is open
+
+function handlePhotoSelect(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  if(file.size > 2 * 1024 * 1024){ toast('Photo must be under 2 MB','error'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    pendingPhotoData = e.target.result;
+    showPhotoPreview(pendingPhotoData);
+  };
+  reader.readAsDataURL(file);
+  event.target.value = ''; // reset so same file can be re-selected
+}
+
+function showPhotoPreview(src){
+  const img = document.getElementById('f-photo-img');
+  const placeholder = document.getElementById('f-photo-placeholder');
+  const removeBtn = document.getElementById('f-photo-remove-btn');
+  if(src){
+    img.src = src;
+    img.style.display = 'block';
+    if(placeholder) placeholder.style.display = 'none';
+    if(removeBtn) removeBtn.style.display = 'inline-flex';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    if(placeholder) placeholder.style.display = 'block';
+    if(removeBtn) removeBtn.style.display = 'none';
+  }
+}
+
+function clearPhotoPreview(){
+  pendingPhotoData = null;
+  showPhotoPreview(null);
+  document.getElementById('f-photo-input').value = '';
+}
+
+const CLIENT_FIELD_MAP={
+  'f-name':'name','f-guardian':'guardian','f-dob':'dob','f-gender':'gender',
+  'f-status':'status','f-since':'since',
+  'f-pan':'pan','f-aadhaar':'aadhaar','f-voterid':'voterid','f-passport':'passport',
+  'f-phone':'phone','f-phone2':'phone2','f-email':'email','f-city':'city',
+  'f-state':'state','f-pin':'pin','f-address':'address','f-notes':'initial_notes'
+};
+
+function openClientModal(editId=null){
+  editingClientId=editId;
+  pendingPhotoData=null;
+  document.getElementById('client-modal-title').textContent=editId?'Edit Client':'Add New Client';
+  if(editId){
+    const c=clients.find(x=>x.id===editId);
+    Object.entries(CLIENT_FIELD_MAP).forEach(([fid,key])=>{const el=document.getElementById(fid);if(el)el.value=c[key]||'';});
+    // Load existing photo
+    if(c.photo){ pendingPhotoData=c.photo; showPhotoPreview(c.photo); }
+    else { showPhotoPreview(null); }
+  } else {
+    Object.keys(CLIENT_FIELD_MAP).forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+    document.getElementById('f-status').value='active';
+    showPhotoPreview(null);
+  }
+  document.getElementById('client-modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('f-name').focus(),80);
+}
+function closeClientModal(e){if(!e||e.target.id==='client-modal-overlay')document.getElementById('client-modal-overlay').classList.remove('open');}
+
+function saveClient(){
+  const data={};
+  Object.entries(CLIENT_FIELD_MAP).forEach(([fid,key])=>{const el=document.getElementById(fid);data[key]=el?el.value.trim():'';});
+  if(data.pan)data.pan=data.pan.toUpperCase();
+  if(data.voterid)data.voterid=data.voterid.toUpperCase();
+  if(data.passport)data.passport=data.passport.toUpperCase();
+  if(!data.name){toast('Name is required','error');return;}
+  if(data.pan&&!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(data.pan)){toast('Invalid PAN format','error');return;}
+  if(data.aadhaar&&!/^\d{12}$/.test(data.aadhaar.replace(/\s/g,''))){toast('Aadhaar must be 12 digits','error');return;}
+  if(editingClientId){
+    const c=clients.find(x=>x.id===editingClientId);
+    Object.assign(c,data);
+    // Update photo: if pendingPhotoData is set use it; if null and no existing, remove
+    if(pendingPhotoData !== null) c.photo = pendingPhotoData;
+    else if(pendingPhotoData === null && c.photo && !document.getElementById('f-photo-img').src) delete c.photo;
+    // If remove was clicked (pendingPhotoData===null and img hidden), clear photo
+    if(pendingPhotoData===null && document.getElementById('f-photo-img').style.display==='none') delete c.photo;
+    saveClients();
+    document.getElementById('client-modal-overlay').classList.remove('open');
+    runAutoStatusEngine(true);renderClientList();renderClientDetail();toast('Client updated');
+  } else {
+    const c={id:uid('CLT'),...data,added:new Date().toLocaleDateString('en-IN'),notes_log:[]};
+    if(pendingPhotoData) c.photo = pendingPhotoData;
+    clients.unshift(c);saveClients();
+    document.getElementById('client-modal-overlay').classList.remove('open');
+    activeClientId=c.id;runAutoStatusEngine(true);renderClientList();renderClientDetail();toast('Client added ✓');
+  }
+}
+function deleteClient(id){
+  if(!confirm('Delete this client and all their interactions and family links?'))return;
+  clients=clients.filter(x=>x.id!==id);
+  interactions=interactions.filter(x=>x.clientId!==id);
+  familyLinks=familyLinks.filter(x=>x.clientA!==id&&x.clientB!==id);
+  saveClients();saveInts();saveFamily();
+  activeClientId=null;renderClientList();
+  document.getElementById('client-stats').innerHTML='';
+  document.getElementById('client-detail').innerHTML='<div class="welcome"><div class="welcome-icon">👥</div><h2>Select a Client</h2><p>Choose from the sidebar or add a new one.</p></div>';
+  renderClientStats();toast('Client deleted','error');
+}
+
+// ═══════════════════════════
+// INTERACTIONS
+// ═══════════════════════════
+function openIntModal(clientId){
+  editingIntId=null;
+  document.getElementById('int-modal-title').textContent='Log Interaction';
+  document.getElementById('i-type').value='call';
+  document.getElementById('i-datetime').value=new Date().toISOString().slice(0,16);
+  document.getElementById('i-duration').value='';
+  document.getElementById('i-outcome').value='Positive';
+  document.getElementById('i-subject').value='';
+  document.getElementById('i-by').value='';
+  document.getElementById('i-notes').value='';
+  document.getElementById('i-followup').value='';
+  document.getElementById('int-modal-overlay').dataset.clientId=clientId;
+  document.getElementById('int-modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('i-subject').focus(),80);
+}
+function closeIntModal(e){if(!e||e.target.id==='int-modal-overlay')document.getElementById('int-modal-overlay').classList.remove('open');}
+
+function saveInteraction(){
+  const subject=document.getElementById('i-subject').value.trim();
+  if(!subject){toast('Subject is required','error');return;}
+  const clientId=document.getElementById('int-modal-overlay').dataset.clientId;
+  const data={
+    id:uid('INT'),clientId,
+    type:document.getElementById('i-type').value,
+    datetime:document.getElementById('i-datetime').value,
+    duration:document.getElementById('i-duration').value,
+    outcome:document.getElementById('i-outcome').value,
+    subject,
+    by:document.getElementById('i-by').value.trim(),
+    notes:document.getElementById('i-notes').value.trim(),
+    followup:document.getElementById('i-followup').value,
+    recorded:new Date().toLocaleDateString('en-IN')
+  };
+  interactions.unshift(data);saveInts();
+  document.getElementById('int-modal-overlay').classList.remove('open');
+  runAutoStatusEngine(true);renderClientDetail();toast('Interaction logged ✓');
+}
+function deleteInteraction(id){
+  if(!confirm('Delete this interaction record?'))return;
+  interactions=interactions.filter(x=>x.id!==id);
+  saveInts();renderClientDetail();toast('Deleted','error');
+}
+
+// ═══════════════════════════
+// FAMILY LINKING
+// ═══════════════════════════
+let familyForClientId=null;
+
+function openFamilyModal(clientId){
+  familyForClientId=clientId;
+  familySelectedId=null;
+  document.getElementById('family-editing-link-id').value='';
+  document.getElementById('family-modal-title').textContent='Link Family Member';
+  document.getElementById('family-modal-desc').textContent='Search and link a client as a family member.';
+  document.getElementById('family-save-btn').textContent='Link Member';
+  document.getElementById('family-search-group').style.display='';
+  document.getElementById('family-search-section-label').style.display='';
+  document.getElementById('family-search').value='';
+  document.getElementById('family-search-results').style.display='none';
+  document.getElementById('family-search-results').innerHTML='';
+  document.getElementById('family-selected-preview').innerHTML='';
+  document.getElementById('family-relation').value='Spouse';
+  document.getElementById('family-custom-relation').value='';
+  document.getElementById('family-modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('family-search').focus(),80);
+}
+
+function editFamilyLink(linkId){
+  const link = familyLinks.find(l=>l.id===linkId);
+  if(!link) return;
+  // Determine which side is "current client" (we need a context client)
+  // Use activeClientId as base
+  familyForClientId = activeClientId;
+  familySelectedId  = null;
+
+  document.getElementById('family-editing-link-id').value = linkId;
+  document.getElementById('family-modal-title').textContent = 'Edit Family Link';
+  document.getElementById('family-modal-desc').textContent  = 'Update the relationship between these two clients.';
+  document.getElementById('family-save-btn').textContent    = 'Save Changes';
+
+  // Hide client search — link already exists, only relation changes
+  document.getElementById('family-search-group').style.display = 'none';
+  document.getElementById('family-search-section-label').style.display = 'none';
+
+  // Show both names in preview
+  const cA = clients.find(x=>x.id===link.clientA);
+  const cB = clients.find(x=>x.id===link.clientB);
+  document.getElementById('family-selected-preview').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;">
+      <div class="family-avatar" style="width:32px;height:32px;font-size:13px;flex-shrink:0;">${cA?cA.name.charAt(0).toUpperCase():'?'}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${cA?esc(cA.name):'Unknown'}</div>
+      </div>
+      <div style="font-size:18px;color:var(--text3);">⟷</div>
+      <div style="flex:1;text-align:right;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${cB?esc(cB.name):'Unknown'}</div>
+      </div>
+      <div class="family-avatar" style="width:32px;height:32px;font-size:13px;flex-shrink:0;">${cB?cB.name.charAt(0).toUpperCase():'?'}</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:8px;">Editing relationship from <strong style="color:var(--text2);">${cA?esc(cA.name):'?'}</strong> to <strong style="color:var(--text2);">${cB?esc(cB.name):'?'}</strong></div>`;
+
+  // Pre-fill relation
+  const rel = link.relation||'Spouse';
+  const sel = document.getElementById('family-relation');
+  const opt = [...sel.options].find(o=>o.value===rel);
+  sel.value = opt ? rel : 'Other';
+  document.getElementById('family-custom-relation').value = link.customRelation||'';
+
+  document.getElementById('family-modal-overlay').classList.add('open');
+}
+
+function closeFamilyModal(e){if(!e||e.target.id==='family-modal-overlay')document.getElementById('family-modal-overlay').classList.remove('open');}
+
+function searchFamilyClients(){
+  const q=document.getElementById('family-search').value.toLowerCase().trim();
+  const results=document.getElementById('family-search-results');
+  if(!q){results.style.display='none';return;}
+  const found=clients.filter(c=>
+    c.id!==familyForClientId&&
+    (c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.pan||'').toLowerCase().includes(q))
+  ).slice(0,8);
+  if(!found.length){results.innerHTML='<div style="padding:10px 12px;font-size:13px;color:var(--text3);">No clients found</div>';results.style.display='block';return;}
+  results.innerHTML=found.map(c=>`
+    <div class="search-result-item" onclick="selectFamilyClient('${c.id}','${esc(c.name)}')">
+      <div>${esc(c.name)}</div>
+      <div class="search-result-meta">${esc(c.city||'')}${c.phone?' · '+esc(c.phone):''}</div>
+    </div>`).join('');
+  results.style.display='block';
+}
+
+function selectFamilyClient(id,name){
+  familySelectedId=id;
+  document.getElementById('family-search').value=name;
+  document.getElementById('family-search-results').style.display='none';
+  const c=clients.find(x=>x.id===id);
+  document.getElementById('family-selected-preview').innerHTML=c?`
+    <div class="family-card" style="background:var(--surface2);">
+      <div class="family-avatar">${c.name.charAt(0).toUpperCase()}</div>
+      <div class="family-info">
+        <div class="family-name">${esc(c.name)}</div>
+        <div class="family-relation">${esc(c.city||'')}</div>
+      </div>
+      <span style="color:var(--success);font-size:16px;">✓</span>
+    </div>`:'';
+}
+
+function saveFamilyLink(){
+  const editingId = document.getElementById('family-editing-link-id').value;
+  const relation  = document.getElementById('family-relation').value;
+  const custom    = document.getElementById('family-custom-relation').value.trim();
+
+  if(editingId){
+    // ── EDIT MODE ──
+    const idx = familyLinks.findIndex(l=>l.id===editingId);
+    if(idx===-1){toast('Link not found','error');return;}
+    familyLinks[idx].relation       = relation;
+    familyLinks[idx].customRelation = custom;
+    saveFamily();
+    document.getElementById('family-modal-overlay').classList.remove('open');
+    renderClientDetail();
+    if(document.getElementById('page-familytree').classList.contains('active')) renderFamilyTree();
+    toast('Family link updated ✓');
+  } else {
+    // ── ADD MODE ──
+    if(!familySelectedId){toast('Please select a client to link','error');return;}
+    const exists=familyLinks.find(l=>(l.clientA===familyForClientId&&l.clientB===familySelectedId)||(l.clientA===familySelectedId&&l.clientB===familyForClientId));
+    if(exists){toast('These clients are already linked','error');return;}
+    familyLinks.push({
+      id:uid('FAM'),
+      clientA:familyForClientId,
+      clientB:familySelectedId,
+      relation,
+      customRelation:custom,
+      date:new Date().toLocaleDateString('en-IN')
+    });
+    saveFamily();
+    document.getElementById('family-modal-overlay').classList.remove('open');
+    renderClientDetail();toast('Family member linked ✓');
+  }
+}
+
+function unlinkFamily(linkId){
+  // Inline confirm — avoid browser confirm() which can be blocked in local file context
+  const btn = document.querySelector(`[data-unlink-id="${linkId}"]`);
+  if(btn && btn.dataset.confirmed !== 'yes'){
+    btn.dataset.confirmed = 'yes';
+    btn.textContent = '✓ Sure?';
+    btn.style.color = 'var(--danger)';
+    btn.style.background = 'rgba(180,60,50,0.15)';
+    setTimeout(()=>{
+      if(btn.dataset.confirmed==='yes'){
+        btn.dataset.confirmed='';
+        btn.textContent='✕';
+        btn.style.color='';
+        btn.style.background='';
+      }
+    }, 2500);
+    return;
+  }
+  familyLinks = familyLinks.filter(x=>x.id!==linkId);
+  saveFamily();
+  renderClientDetail();
+  if(document.getElementById('page-familytree').classList.contains('active')) renderFamilyTree();
+  toast('Link removed','error');
+}
+
+// ═══════════════════════════
+// REVENUE
+// ═══════════════════════════
+function updateTxnCategories(){
+  document.getElementById('t-category').innerHTML=INCOME_CATS.map(c=>`<option>${c}</option>`).join('');
+}
+
+function openTxnModal(editId=null){
+  editingTxnId=editId;
+  document.getElementById('txn-modal-title').textContent=editId?'Edit Transaction':'Add Transaction';
+  updateTxnCategories();
+  const sel=document.getElementById('t-client');
+  sel.innerHTML='<option value="">— None —</option>'+clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  if(editId){
+    const t=transactions.find(x=>x.id===editId);
+    updateTxnCategories();
+    document.getElementById('t-amount').value=t.amount;
+    document.getElementById('t-category').value=t.category;
+    document.getElementById('t-date').value=t.date;
+    document.getElementById('t-mode').value=t.mode;
+    document.getElementById('t-status').value=t.status;
+    document.getElementById('t-client').value=t.clientId||'';
+    document.getElementById('t-ref').value=t.ref||'';
+    document.getElementById('t-desc').value=t.desc||'';
+  } else {
+    updateTxnCategories();
+    ['t-amount','t-ref','t-desc'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('t-mode').value='Cash';
+    document.getElementById('t-status').value='paid';
+    document.getElementById('t-client').value='';
+  }
+  document.getElementById('txn-modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('t-amount').focus(),80);
+}
+function closeTxnModal(e){if(!e||e.target.id==='txn-modal-overlay')document.getElementById('txn-modal-overlay').classList.remove('open');}
+
+function saveTxn(){
+  const amount=parseFloat(document.getElementById('t-amount').value);
+  if(!amount||amount<=0){toast('Enter a valid amount','error');return;}
+  const date=document.getElementById('t-date').value;
+  if(!date){toast('Date is required','error');return;}
+  const data={
+    type:'income',amount,
+    category:document.getElementById('t-category').value,
+    date,mode:document.getElementById('t-mode').value,
+    status:document.getElementById('t-status').value,
+    clientId:document.getElementById('t-client').value||null,
+    ref:document.getElementById('t-ref').value.trim(),
+    desc:document.getElementById('t-desc').value.trim(),
+  };
+  if(editingTxnId){
+    const t=transactions.find(x=>x.id===editingTxnId);
+    Object.assign(t,data);saveTxns();
+    document.getElementById('txn-modal-overlay').classList.remove('open');
+    renderRevenue();toast('Transaction updated');
+  } else {
+    transactions.unshift({id:uid('TXN'),...data,added:new Date().toLocaleDateString('en-IN')});
+    saveTxns();
+    document.getElementById('txn-modal-overlay').classList.remove('open');
+    runAutoStatusEngine(true);renderRevenue();toast('Transaction saved ✓');
+  }
+}
+function deleteTxn(id){
+  if(!confirm('Delete this transaction?'))return;
+  transactions=transactions.filter(x=>x.id!==id);
+  saveTxns();renderRevenue();toast('Deleted','error');
+}
+
+function renderRevenue(){
+  const totalIncome=transactions.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+  const pending=transactions.filter(t=>t.status==='unpaid').reduce((s,t)=>s+Number(t.amount),0);
+  const thisMonth=new Date().toISOString().substr(0,7);
+  const monthIncome=transactions.filter(t=>t.type==='income'&&t.date.startsWith(thisMonth)).reduce((s,t)=>s+Number(t.amount),0);
+  document.getElementById('rev-summary').innerHTML=`
+    <div class="rev-card income-card"><div class="rev-card-label">Total Income</div><div class="rev-card-val income">${fmt(totalIncome)}</div><div class="rev-card-sub">${transactions.filter(t=>t.type==='income').length} transactions</div></div>
+    <div class="rev-card income-card"><div class="rev-card-label">This Month</div><div class="rev-card-val income" style="font-size:20px;">${fmt(monthIncome)}</div><div class="rev-card-sub">${transactions.filter(t=>t.type==='income'&&t.date.startsWith(thisMonth)).length} this month</div></div>
+    <div class="rev-card pending-card"><div class="rev-card-label">Pending / Unpaid</div><div class="rev-card-val" style="color:var(--accent)">${fmt(pending)}</div><div class="rev-card-sub">${transactions.filter(t=>t.status==='unpaid').length} pending</div></div>`;
+
+  renderChart();
+
+  const catSel=document.getElementById('rev-filter-cat');
+  const allCats=[...new Set(transactions.map(t=>t.category))].sort();
+  const prevCat=catSel.value;
+  catSel.innerHTML='<option value="all">All Categories</option>'+allCats.map(c=>`<option ${c===prevCat?'selected':''}>${c}</option>`).join('');
+
+  const catF=document.getElementById('rev-filter-cat').value;
+  const monthF=document.getElementById('rev-filter-month').value;
+  let filtered=transactions.filter(t=>{
+    if(t.type!=='income')return false;
+    if(catF!=='all'&&t.category!==catF)return false;
+    if(monthF&&!t.date.startsWith(monthF))return false;
+    return true;
+  });
+
+  const wrap=document.getElementById('txn-table-wrap');
+  if(!filtered.length){wrap.innerHTML='<div class="empty-txn">No transactions found.</div>';return;}
+  wrap.innerHTML=`<table class="txn-table">
+    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Client</th><th>Mode</th><th>Status</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+    <tbody>${filtered.map(t=>{
+      const client=t.clientId?clients.find(c=>c.id===t.clientId):null;
+      return `<tr>
+        <td style="color:var(--text2);white-space:nowrap;">${t.date}</td>
+        <td style="color:var(--text2);">${esc(t.category)}</td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(t.desc)}">${esc(t.desc||t.ref||'—')}</td>
+        <td style="color:var(--text2);">${client?esc(client.name):'—'}</td>
+        <td style="color:var(--text3);">${esc(t.mode)}</td>
+        <td><span class="txn-badge ${t.status}">${t.status==='paid'?'Paid':t.status==='unpaid'?'Pending':'Partial'}</span></td>
+        <td style="text-align:right;"><span class="txn-amount income">${fmt(t.amount)}</span></td>
+        <td><div style="display:flex;gap:4px;">
+          <button class="btn btn-ghost btn-xs" onclick="openTxnModal('${t.id}')">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteTxn('${t.id}')">✕</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function renderChart(){
+  const months=[];
+  for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push({key:d.toISOString().substr(0,7),label:d.toLocaleString('en-IN',{month:'short'})});}
+  const maxVal=Math.max(...months.map(m=>{
+    return transactions.filter(t=>t.type==='income'&&t.date.startsWith(m.key)).reduce((s,t)=>s+Number(t.amount),0);
+  }),1);
+  document.getElementById('bar-chart').innerHTML=months.map(m=>{
+    const inc=transactions.filter(t=>t.type==='income'&&t.date.startsWith(m.key)).reduce((s,t)=>s+Number(t.amount),0);
+    const ih=Math.round((inc/maxVal)*92)||2;
+    return `<div class="bar-group">
+      <div class="bar-pair">
+        <div class="bar income-bar" style="height:${ih}px;min-width:20px;" title="Income: ${fmt(inc)}"></div>
+      </div>
+      <div class="bar-label">${m.label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════
+// REVENUE SUB TABS
+// ═══════════════════════════
+function switchRevTab(tab, el){
+  document.querySelectorAll('.rev-sub-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.rev-sub-content').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('rev-tab-'+tab).classList.add('active');
+  if(tab==='by-client') renderClientRevenue();
+}
+
+// ═══════════════════════════
+// CLIENT REVENUE LEADERBOARD
+// ═══════════════════════════
+function getDateRangeFilter(period){
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  if(period==='all') return ()=>true;
+  if(period==='thismonth') return d=>d.startsWith(`${y}-${String(m+1).padStart(2,'0')}`);
+  if(period==='thisyear') return d=>d.startsWith(`${y}-`);
+  if(period==='lastyear') return d=>d.startsWith(`${y-1}-`);
+  if(period==='last3'){
+    const from = new Date(y,m-2,1);
+    return d=>new Date(d)>=from;
+  }
+  if(period==='last6'){
+    const from = new Date(y,m-5,1);
+    return d=>new Date(d)>=from;
+  }
+  return ()=>true;
+}
+
+function renderClientRevenue(){
+  const period = document.getElementById('cr-filter-period').value;
+  const topN   = document.getElementById('cr-filter-top').value;
+  const dateOk = getDateRangeFilter(period);
+
+  // Build per-client data (income only)
+  const clientData = clients.map(c=>{
+    const cTxns = transactions.filter(t=>t.clientId===c.id && t.type==='income' && dateOk(t.date));
+    const income  = cTxns.reduce((s,t)=>s+Number(t.amount),0);
+    const txnCount = cTxns.length;
+    return {c, income, txnCount, sortVal:income};
+  })
+  .filter(x=>x.sortVal>0)
+  .sort((a,b)=>b.sortVal-a.sortVal);
+
+  if(!clientData.length){
+    document.getElementById('cr-podium').innerHTML='';
+    document.getElementById('cr-table').innerHTML='<div class="no-rev-clients">No client revenue data found for the selected filters.<br>Link transactions to clients to see rankings here.</div>';
+    return;
+  }
+
+  const limited = topN==='all' ? clientData : clientData.slice(0, parseInt(topN));
+  const maxVal  = Math.max(...limited.map(x=>Math.abs(x.sortVal)), 1);
+  const label   = 'Income';
+
+  // PODIUM — top 3
+  const top3 = limited.slice(0,3);
+  const podiumOrder = top3.length>=3 ? [top3[1],top3[0],top3[2]] : top3.length===2 ? [top3[1],top3[0]] : [top3[0]];
+  const podiumClasses = top3.length>=3 ? ['podium-2','podium-1','podium-3'] : top3.length===2 ? ['podium-2','podium-1'] : ['podium-1'];
+  const podiumRanks   = top3.length>=3 ? ['🥈','🥇','🥉'] : top3.length===2 ? ['🥈','🥇'] : ['🥇'];
+
+  document.getElementById('cr-podium').innerHTML = `
+    <div class="client-rev-podium" style="grid-template-columns:${top3.length===1?'1fr':top3.length===2?'1fr 1.12fr':'1fr 1.12fr 1fr'};">
+      ${podiumOrder.map((x,i)=>`
+        <div class="podium-card ${podiumClasses[i]}" onclick="goToClient('${x.c.id}')">
+          <div class="podium-rank">${podiumRanks[i]}</div>
+          <div class="podium-name">${esc(x.c.name)}</div>
+          <div class="podium-amount">${fmt(x.sortVal)}</div>
+          <div class="podium-meta">${x.txnCount} transaction${x.txnCount!==1?'s':''} · ${esc(x.c.city||'')}</div>
+        </div>`).join('')}
+    </div>`;
+
+  // FULL TABLE
+  document.getElementById('cr-table').innerHTML = `
+    <table class="client-rev-table">
+      <thead><tr>
+        <th style="width:36px;">Rank</th>
+        <th>Client</th>
+        <th>City / Type</th>
+        <th style="text-align:right;">${label}</th>
+
+        <th>Transactions</th>
+        <th style="min-width:100px;">Share</th>
+      </tr></thead>
+      <tbody>
+        ${limited.map((x,i)=>{
+          const rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'';
+          const pct = Math.round((Math.abs(x.sortVal)/maxVal)*100);
+          return `<tr>
+            <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
+            <td>
+              <div style="font-weight:500;cursor:pointer;color:var(--accent);" onclick="goToClient('${x.c.id}')">${esc(x.c.name)}</div>
+              ${x.c.org?`<div style="font-size:11px;color:var(--text3);">${esc(x.c.org)}</div>`:''}
+            </td>
+            <td style="color:var(--text2);font-size:12px;">${esc(x.c.city||'—')}</td>
+            <td style="text-align:right;"><span style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;color:var(--income);">${fmt(x.sortVal)}</span></td>
+
+            <td style="color:var(--text2);">${x.txnCount}</td>
+            <td>
+              <div class="rev-bar-bg"><div class="rev-bar-fill" style="width:${pct}%;background:${valColor};"></div></div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px;">${pct}% of top</div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function goToClient(id){
+  // Switch to clients tab and open client
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelector('[onclick*="clients"]').classList.add('active');
+  document.getElementById('page-clients').classList.add('active');
+  activeClientId=id;
+  renderClientList();
+  renderClientDetail();
+}
+
+// ═══════════════════════════
+// SIDEBAR VIEW (LIST / CITY)
+// ═══════════════════════════
+let sidebarView = 'list';
+
+function setSidebarView(v, el){
+  sidebarView = v;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderClientList();
+}
+
+function renderClientList(){
+  const list = document.getElementById('client-list');
+  const q    = document.getElementById('search-input').value.toLowerCase();
+  document.getElementById('header-info').textContent = clients.length+' clients · '+transactions.length+' txns';
+
+  const filtered = clients.filter(c=>{
+    const mf = currentFilter==='all' || c.status===currentFilter;
+    const ms = !q || c.name.toLowerCase().includes(q)
+      || (c.pan||'').toLowerCase().includes(q)
+      || (c.phone||'').includes(q)
+      || (c.city||'').toLowerCase().includes(q);
+    return mf && ms;
+  });
+
+  if(!filtered.length){list.innerHTML='<div class="empty-list">No clients found</div>';renderClientStats();return;}
+
+  if(sidebarView === 'city'){
+    // Group by city
+    const cityMap = {};
+    filtered.forEach(c=>{
+      const city = (c.city||'').trim() || 'Unknown City';
+      if(!cityMap[city]) cityMap[city]=[];
+      cityMap[city].push(c);
+    });
+    const sortedCities = Object.keys(cityMap).sort((a,b)=>{
+      if(a==='Unknown City') return 1;
+      if(b==='Unknown City') return -1;
+      return cityMap[b].length - cityMap[a].length; // sort cities by count desc
+    });
+    list.innerHTML = sortedCities.map(city=>`
+      <div class="city-group-label">
+        <span>📍 ${esc(city)}</span>
+        <span class="city-group-count">${cityMap[city].length} client${cityMap[city].length!==1?'s':''}</span>
+      </div>
+      ${cityMap[city].map(c=>`
+        <div class="client-item ${c.id===activeClientId?'active':''}" onclick="selectClient('${c.id}')">
+          <div class="client-item-inner">
+            <div class="client-item-avatar">
+              ${c.photo ? `<img src="${c.photo}" alt="">` : esc(c.name.charAt(0).toUpperCase())}
+            </div>
+            <div class="client-item-text">
+              <div class="client-item-name">${esc(c.name)}</div>
+              <div class="client-item-phone">${c.phone?`<a href="tel:${esc(c.phone)}" onclick="event.stopPropagation()">${esc(c.phone)}</a>`:c.phone2?`<a href="tel:${esc(c.phone2)}" onclick="event.stopPropagation()">${esc(c.phone2)}</a>`:'<span style="color:var(--text3)">No phone</span>'}</div>
+              <div class="client-item-meta"><span class="status-dot ${c.status}"></span>${esc(c.city||'')}</div>
+            </div>
+          </div>
+        </div>`).join('')}`).join('');
+  } else {
+    list.innerHTML = filtered.map(c=>`
+      <div class="client-item ${c.id===activeClientId?'active':''}" onclick="selectClient('${c.id}')">
+        <div class="client-item-inner">
+          <div class="client-item-avatar">
+            ${c.photo ? `<img src="${c.photo}" alt="">` : esc(c.name.charAt(0).toUpperCase())}
+          </div>
+          <div class="client-item-text">
+            <div class="client-item-name">${esc(c.name)}</div>
+            <div class="client-item-meta"><span class="status-dot ${c.status}"></span>${esc(c.city||'')}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  renderClientStats();
+}
+
+// ═══════════════════════════
+// VCARD EXPORT
+// ═══════════════════════════
+function openVcardModal(){
+  // Populate city filter
+  const cities = [...new Set(clients.map(c=>(c.city||'').trim()).filter(Boolean))].sort();
+  const citySel = document.getElementById('vcard-city-filter');
+  citySel.innerHTML = '<option value="all">All Cities</option>' + cities.map(c=>`<option>${esc(c)}</option>`).join('');
+  document.getElementById('vcard-status-filter').value = 'all';
+  renderVcardList();
+  document.getElementById('vcard-modal-overlay').classList.add('open');
+}
+function closeVcardModal(e){
+  if(!e||e.target.id==='vcard-modal-overlay')
+    document.getElementById('vcard-modal-overlay').classList.remove('open');
+}
+
+function renderVcardList(){
+  const cityF   = document.getElementById('vcard-city-filter').value;
+  const statusF = document.getElementById('vcard-status-filter').value;
+
+  let filtered = clients.filter(c=>{
+    const mc = cityF==='all' || (c.city||'').trim()===cityF;
+    const ms = statusF==='all' || c.status===statusF;
+    return mc && ms;
+  });
+
+  // Group by city for display
+  const cityMap = {};
+  filtered.forEach(c=>{
+    const city = (c.city||'').trim() || 'Unknown City';
+    if(!cityMap[city]) cityMap[city]=[];
+    cityMap[city].push(c);
+  });
+
+  const sortedCities = Object.keys(cityMap).sort((a,b)=>{
+    if(a==='Unknown City') return 1;
+    if(b==='Unknown City') return -1;
+    return a.localeCompare(b);
+  });
+
+  const listEl = document.getElementById('vcard-client-list');
+  listEl.innerHTML = sortedCities.map(city=>`
+    <div class="vcard-city-header">📍 ${esc(city)} <span style="color:var(--text3);font-weight:400;font-size:10px;text-transform:none;">${cityMap[city].length} clients</span></div>
+    ${cityMap[city].map(c=>`
+      <div class="vcard-client-row" onclick="toggleVcardCheck('${c.id}')">
+        <input type="checkbox" class="vcard-cb" data-id="${c.id}" id="vcb-${c.id}" onclick="event.stopPropagation();updateVcardCount()">
+        <span class="vcard-client-name">${esc(c.name)}</span>
+        <span class="vcard-client-phone">${esc(c.phone||c.phone2||'—')}</span>
+      </div>`).join('')}`).join('');
+
+  updateVcardCount();
+  // Reset select-all checkbox
+  document.getElementById('vcard-select-all').checked = false;
+}
+
+function toggleVcardCheck(id){
+  const cb = document.getElementById('vcb-'+id);
+  if(cb){ cb.checked=!cb.checked; updateVcardCount(); }
+}
+function toggleSelectAllVcard(masterCb){
+  document.querySelectorAll('.vcard-cb').forEach(cb=>cb.checked=masterCb.checked);
+  updateVcardCount();
+}
+function updateVcardCount(){
+  const checked = document.querySelectorAll('.vcard-cb:checked').length;
+  const total   = document.querySelectorAll('.vcard-cb').length;
+  document.getElementById('vcard-selected-count').textContent = `${checked} of ${total} selected`;
+  document.getElementById('vcard-select-all').checked = checked===total && total>0;
+  document.getElementById('vcard-select-all').indeterminate = checked>0 && checked<total;
+}
+
+function buildVcard(c){
+  // vCard 3.0 format — compatible with Apple Contacts, iPhone, Google Contacts
+  const lines = ['BEGIN:VCARD','VERSION:3.0'];
+
+  // Name — FN (full name) and N (structured)
+  const nameParts = c.name.trim().split(/\s+/);
+  const lastName  = nameParts.length>1 ? nameParts[nameParts.length-1] : '';
+  const firstName = nameParts.length>1 ? nameParts.slice(0,-1).join(' ') : nameParts[0];
+  lines.push(`FN:${c.name}`);
+  lines.push(`N:${lastName};${firstName};;;`);
+
+  // Organisation
+
+  // Title / role from type
+
+  // Phone numbers
+  if(c.phone)  lines.push(`TEL;TYPE=CELL:${c.phone.replace(/\s/g,'')}`);
+  if(c.phone2) lines.push(`TEL;TYPE=WORK:${c.phone2.replace(/\s/g,'')}`);
+
+  // Email
+  if(c.email) lines.push(`EMAIL;TYPE=INTERNET:${c.email}`);
+
+  // Address — ADR: PO box; ext addr; street; city; state; postal; country
+  if(c.address||c.city||c.state||c.pin){
+    const street = (c.address||'').replace(/\n/g,' ').replace(/,/g,' ');
+    lines.push(`ADR;TYPE=HOME:;;${street};${c.city||''};${c.state||''};${c.pin||''};India`);
+  }
+
+  // Note — include PAN, father's name, client ID, status
+  const noteArr = [];
+  if(c.guardian) noteArr.push(`Father/Spouse: ${c.guardian}`);
+  if(c.pan)      noteArr.push(`PAN: ${c.pan}`);
+  if(c.since)    noteArr.push(`Client Since: ${c.since}`);
+  noteArr.push(`Status: ${c.status||''}`);
+  noteArr.push(`ID: ${c.id}`);
+  if(noteArr.length) lines.push(`NOTE:${noteArr.join(' | ')}`);
+
+  // Birthday
+  if(c.dob) lines.push(`BDAY:${c.dob.replace(/-/g,'')}`);
+
+  // Custom label for SLJDT
+  lines.push(`CATEGORIES:SLJDT`);
+
+  // Timestamp
+  lines.push(`REV:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z`);
+
+  lines.push('END:VCARD');
+  return lines.join('\r\n');
+}
+
+function exportVcards(){
+  const selectedIds = [...document.querySelectorAll('.vcard-cb:checked')].map(cb=>cb.dataset.id);
+  if(!selectedIds.length){toast('Please select at least one client','error');return;}
+
+  const selectedClients = selectedIds.map(id=>clients.find(c=>c.id===id)).filter(Boolean);
+  const vcfContent = selectedClients.map(buildVcard).join('\r\n');
+
+  const now   = new Date();
+  const stamp = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const filename = `SLJDT_Contacts_${stamp}.vcf`;
+
+  const blob = new Blob([vcfContent], {type:'text/vcard;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+
+  document.getElementById('vcard-modal-overlay').classList.remove('open');
+  toast(`Exported ${selectedClients.length} contact${selectedClients.length!==1?'s':''} → ${filename}`);
+}
+
+// ═══════════════════════════
+// IMPORT / EXPORT
+// ═══════════════════════════
+let importParsed = null;
+
+function openDataModal(){
+  importParsed = null;
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('import-file-input').value='';
+  document.getElementById('import-warning').style.display='none';
+  document.querySelector('[name="import-mode"][value="merge"]').checked=true;
+  // Update export summary
+  document.getElementById('export-summary').innerHTML=
+    `Current data: <strong style="color:var(--text)">${clients.length}</strong> clients &nbsp;·&nbsp; `+
+    `<strong style="color:var(--text)">${transactions.length}</strong> transactions &nbsp;·&nbsp; `+
+    `<strong style="color:var(--text)">${interactions.length}</strong> interactions &nbsp;·&nbsp; `+
+    `<strong style="color:var(--text)">${familyLinks.length}</strong> family links`;
+  switchDataTab('export', document.querySelector('.data-modal-tab'));
+  document.getElementById('data-modal-overlay').classList.add('open');
+}
+function closeDataModal(e){
+  if(!e||e.target.id==='data-modal-overlay')
+    document.getElementById('data-modal-overlay').classList.remove('open');
+}
+function switchDataTab(tab, el){
+  document.querySelectorAll('.data-modal-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.data-section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('data-tab-'+tab).classList.add('active');
+}
+
+// EXPORT
+function exportData(type){
+  const now = new Date();
+  const stamp = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
+    +'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  let data, filename;
+  if(type==='full'){
+    data = {
+      _meta:{ exported: now.toISOString(), version:'3.0', type:'full' },
+      clients, transactions, interactions, familyLinks
+    };
+    filename = `SLJDT_FullBackup_${stamp}.json`;
+  } else if(type==='clients'){
+    data = { _meta:{ exported:now.toISOString(), version:'3.0', type:'clients' }, clients };
+    filename = `SLJDT_Clients_${stamp}.json`;
+  } else if(type==='transactions'){
+    data = { _meta:{ exported:now.toISOString(), version:'3.0', type:'transactions' }, transactions };
+    filename = `SLJDT_Transactions_${stamp}.json`;
+  } else if(type==='interactions'){
+    data = { _meta:{ exported:now.toISOString(), version:'3.0', type:'interactions' }, interactions };
+    filename = `SLJDT_Interactions_${stamp}.json`;
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+  toast('Exported: '+filename);
+}
+
+// IMPORT — drag & drop
+function handleDragOver(e){
+  e.preventDefault();
+  document.getElementById('import-drop-zone').classList.add('drag-over');
+}
+function handleDragLeave(e){
+  document.getElementById('import-drop-zone').classList.remove('drag-over');
+}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('import-drop-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if(file) readImportFile(file);
+}
+function handleFileSelect(e){
+  const file = e.target.files[0];
+  if(file) readImportFile(file);
+}
+function readImportFile(file){
+  if(!file.name.endsWith('.json')){toast('Please select a .json file','error');return;}
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      importParsed = parsed;
+      showImportPreview(parsed);
+    } catch(err){
+      toast('Invalid JSON file. Please use a file exported from ClientFlow.','error');
+      importParsed=null;
+    }
+  };
+  reader.readAsText(file);
+}
+function showImportPreview(data){
+  const stats=[];
+  if(data.clients)      stats.push({label:'Clients',     val:data.clients.length,      icon:'👥'});
+  if(data.transactions) stats.push({label:'Transactions', val:data.transactions.length,  icon:'💰'});
+  if(data.interactions) stats.push({label:'Interactions', val:data.interactions.length,  icon:'🗂️'});
+  if(data.familyLinks)  stats.push({label:'Family Links', val:data.familyLinks.length,   icon:'👨‍👩‍👧'});
+  if(!stats.length){toast('No recognizable data found in file','error');return;}
+  document.getElementById('import-stat-row').innerHTML = stats.map(s=>
+    `<div class="import-stat">${s.icon} ${s.label}: <span>${s.val}</span></div>`
+  ).join('');
+  if(data._meta) document.getElementById('import-stat-row').innerHTML +=
+    `<div class="import-stat">📅 Exported: <span>${new Date(data._meta.exported).toLocaleString('en-IN')}</span></div>`;
+  document.getElementById('import-preview').style.display='block';
+  // Show warning toggle based on radio
+  document.querySelectorAll('[name="import-mode"]').forEach(r=>r.addEventListener('change', updateImportWarning));
+  updateImportWarning();
+}
+function updateImportWarning(){
+  const mode = document.querySelector('[name="import-mode"]:checked').value;
+  document.getElementById('import-warning').style.display = mode==='replace'?'block':'none';
+}
+function clearImport(){
+  importParsed=null;
+  document.getElementById('import-file-input').value='';
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('import-warning').style.display='none';
+}
+
+function doImport(){
+  if(!importParsed){toast('No file loaded','error');return;}
+  const mode = document.querySelector('[name="import-mode"]:checked').value;
+  const data = importParsed;
+
+  if(mode==='replace'){
+    if(!confirm('This will DELETE all existing data and replace with the imported file. Are you sure?')) return;
+    if(data.clients)      clients=data.clients;
+    if(data.transactions) transactions=data.transactions;
+    if(data.interactions) interactions=data.interactions;
+    if(data.familyLinks)  familyLinks=data.familyLinks;
+  } else {
+    // MERGE — skip records with duplicate IDs
+    if(data.clients){
+      const existIds=new Set(clients.map(c=>c.id));
+      const added=data.clients.filter(c=>!existIds.has(c.id));
+      clients=[...added,...clients];
+    }
+    if(data.transactions){
+      const existIds=new Set(transactions.map(t=>t.id));
+      const added=data.transactions.filter(t=>!existIds.has(t.id));
+      transactions=[...added,...transactions];
+    }
+    if(data.interactions){
+      const existIds=new Set(interactions.map(i=>i.id));
+      const added=data.interactions.filter(i=>!existIds.has(i.id));
+      interactions=[...added,...interactions];
+    }
+    if(data.familyLinks){
+      const existIds=new Set(familyLinks.map(l=>l.id));
+      const added=data.familyLinks.filter(l=>!existIds.has(l.id));
+      familyLinks=[...added,...familyLinks];
+    }
+  }
+
+  saveClients(); saveTxns(); saveInts(); saveFamily();
+  clearImport();
+  document.getElementById('data-modal-overlay').classList.remove('open');
+  activeClientId=null;
+  renderClientList();
+  renderClientStats();
+  toast('Data imported successfully ✓');
+}
+
+// ═══════════════════════════
+// AUTO STATUS ENGINE
+// ═══════════════════════════
+function getLastActivityDate(clientId){
+  // Latest transaction date
+  const txnDates = transactions
+    .filter(t=>t.clientId===clientId && t.date)
+    .map(t=>new Date(t.date).getTime());
+  // Latest interaction datetime
+  const intDates = interactions
+    .filter(i=>i.clientId===clientId && i.datetime)
+    .map(i=>new Date(i.datetime).getTime());
+  const all = [...txnDates, ...intDates].filter(d=>!isNaN(d));
+  return all.length ? Math.max(...all) : null;
+}
+
+function runAutoStatusEngine(silent=false){
+  const now   = Date.now();
+  const DAY   = 86400000;
+  const D15   = 15 * DAY;
+  const D60   = 60 * DAY;
+  let changed = 0;
+
+  clients.forEach(c=>{
+    // Never downgrade manually-set dormant back to active automatically
+    // Only auto-manage clients not manually locked
+    if(c.statusLocked) return;
+
+    const last = getLastActivityDate(c.id);
+    const sinceMs = last ? (now - last) : Infinity;
+    let newStatus = c.status;
+
+    if(sinceMs >= D60){
+      newStatus = 'dormant';
+    } else if(sinceMs >= D15){
+      // Only move active → inactive (not dormant→inactive)
+      if(c.status === 'active') newStatus = 'inactive';
+    } else {
+      // Recent activity — restore to active (unless dormant and no manual lock)
+      if(c.status === 'inactive' || c.status === 'dormant') newStatus = 'active';
+    }
+
+    if(newStatus !== c.status){
+      c.status = newStatus;
+      changed++;
+    }
+  });
+
+  if(changed > 0){
+    saveClients();
+    renderClientList();
+    if(!silent) toast(`Auto-status updated ${changed} client${changed>1?'s':''}`);
+  }
+  return changed;
+}
+
+// ═══════════════════════════════════════
+// FAMILY TREE — INTERACTIVE FORCE GRAPH
+// ═══════════════════════════════════════
+let treeTransform = {x:0, y:0, scale:1};
+let treeSimulation = null;
+let treeHighlight = null;
+
+const STATUS_COLORS = {
+  active:  '#5a9e6f',
+  inactive:'#7aabdd',
+  dormant: '#b07ad4',
+  default: '#5a5245'
+};
+
+function renderFamilyTree(){
+  const wrap = document.getElementById('tree-canvas-wrap');
+  const svg  = document.getElementById('family-tree-svg');
+  const empty= document.getElementById('tree-empty');
+
+  // Populate focus dropdown
+  const sel = document.getElementById('tree-focus-client');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Focus on client —</option>' +
+    clients.filter(c => familyLinks.some(l=>l.clientA===c.id||l.clientB===c.id))
+           .map(c=>`<option value="${c.id}" ${c.id===prev?'selected':''}>${esc(c.name)}</option>`)
+           .join('');
+
+  if(!familyLinks.length){
+    svg.style.display='none';
+    empty.style.display='flex';
+    document.getElementById('tree-legend').style.display='none';
+    return;
+  }
+  svg.style.display='block';
+  empty.style.display='none';
+  document.getElementById('tree-legend').style.display='block';
+
+  // Build graph data — only clients involved in at least one link
+  const linkedIds = new Set();
+  familyLinks.forEach(l=>{ linkedIds.add(l.clientA); linkedIds.add(l.clientB); });
+
+  const nodes = clients
+    .filter(c=>linkedIds.has(c.id))
+    .map(c=>({ id:c.id, name:c.name, status:c.status, photo:c.photo||null, city:c.city||'', phone:c.phone||'' }));
+
+  const links = familyLinks.map(l=>({
+    source: l.clientA,
+    target: l.clientB,
+    relation: l.customRelation || l.relation || ''
+  }));
+
+  drawForceGraph(svg, nodes, links, wrap);
+}
+
+// ─────────────────────────────────────────────────────────────
+// RELATION → GENERATION OFFSET
+// negative = older generation (above), 0 = same, positive = younger (below)
+// ─────────────────────────────────────────────────────────────
+const REL_GEN = {
+  'Grandfather':  -2, 'Grandmother':  -2,
+  'Great Uncle':  -2, 'Great Aunt':   -2,
+  'Father':       -1, 'Mother':       -1,
+  'Uncle':        -1, 'Aunt':         -1,
+  'Father-in-Law':-1, 'Mother-in-Law':-1,
+  'Spouse':        0, 'Brother':       0, 'Sister':        0,
+  'Cousin':        0, 'Brother-in-Law':0, 'Sister-in-Law': 0,
+  'Son':           1, 'Daughter':      1,
+  'Nephew':        1, 'Niece':         1,
+  'Son-in-Law':    1, 'Daughter-in-Law':1,
+  'Grandson':      2, 'Granddaughter': 2,
+};
+
+function getRelGen(rel){
+  if(!rel) return 0;
+  const r = rel.trim();
+  for(const key of Object.keys(REL_GEN)){
+    if(r.toLowerCase()===key.toLowerCase()) return REL_GEN[key];
+  }
+  return 0;
+}
+
+// Draw tree using hierarchical layer layout
+function drawForceGraph(svg, nodes, links, wrap){
+  // Clear previous
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  if(treeSimulation){ treeSimulation.stop(); treeSimulation=null; }
+
+  const W = wrap.clientWidth  || 900;
+  const H = wrap.clientHeight || 620;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const gMain  = document.createElementNS(NS,'g'); gMain.setAttribute('id','tree-g-main');
+  const gLinks = document.createElementNS(NS,'g'); gLinks.setAttribute('id','tree-g-links');
+  const gNodes = document.createElementNS(NS,'g'); gNodes.setAttribute('id','tree-g-nodes');
+  gMain.appendChild(gLinks);
+  gMain.appendChild(gNodes);
+  svg.appendChild(gMain);
+  gMain.setAttribute('transform', `translate(${treeTransform.x},${treeTransform.y}) scale(${treeTransform.scale})`);
+
+  const NODE_W = 148, NODE_H = 56, NODE_R = 9;
+  const AVATAR = 21;
+  const H_GAP  = 40;   // horizontal gap between nodes on same row
+  const V_GAP  = 80;   // vertical gap between generations
+
+  // ── STEP 1: Assign generation scores via BFS from every node ──────────────
+  // Build adjacency with gen offsets
+  const adjGen = {}; // adjGen[id] = [{otherId, genDelta}]
+  nodes.forEach(n=>{ adjGen[n.id]=[]; });
+  links.forEach(l=>{
+    const r = l.relation||'';
+    const delta = getRelGen(r);
+    // source→target: target is delta generations below source
+    // target→source: source is -delta generations below target
+    adjGen[l.source] = adjGen[l.source]||[];
+    adjGen[l.target] = adjGen[l.target]||[];
+    adjGen[l.source].push({id:l.target, delta:  delta});
+    adjGen[l.target].push({id:l.source, delta: -delta});
+  });
+
+  // BFS to assign generation numbers
+  const genMap = {}; // id → generation number
+  const visited = new Set();
+  // Start from node with most connections
+  const startId = nodes.reduce((best,n)=>{
+    const ca=(adjGen[n.id]||[]).length, cb=(adjGen[best.id]||[]).length;
+    return ca>cb?n:best;
+  }, nodes[0]).id;
+
+  const queue = [{id:startId, gen:0}];
+  genMap[startId] = 0;
+  visited.add(startId);
+  while(queue.length){
+    const {id, gen} = queue.shift();
+    (adjGen[id]||[]).forEach(({id:nid, delta})=>{
+      if(visited.has(nid)) return;
+      visited.add(nid);
+      genMap[nid] = gen + delta;
+      queue.push({id:nid, gen:gen+delta});
+    });
+  }
+  // Any disconnected nodes (separate clusters) start at 0
+  nodes.forEach(n=>{ if(genMap[n.id]===undefined) genMap[n.id]=0; });
+
+  // ── STEP 2: Group nodes by generation row ────────────────────────────────
+  const genRows = {}; // gen → [node]
+  nodes.forEach(n=>{
+    const g = genMap[n.id];
+    if(!genRows[g]) genRows[g]=[];
+    genRows[g].push(n);
+  });
+
+  // Sort generation keys
+  const genKeys = Object.keys(genRows).map(Number).sort((a,b)=>a-b);
+  const totalRows = genKeys.length;
+
+  // ── STEP 3: Assign X,Y positions ─────────────────────────────────────────
+  // Total height needed
+  const totalH = (totalRows-1)*V_GAP + totalRows*NODE_H;
+  const startY = Math.max(40, (H - totalH)/2);
+
+  genKeys.forEach((gen, rowIdx)=>{
+    const row = genRows[gen];
+    const rowW = row.length * NODE_W + (row.length-1) * H_GAP;
+    const startX = Math.max(NODE_W/2+10, (W - rowW)/2);
+    row.forEach((n, colIdx)=>{
+      n.x = startX + colIdx*(NODE_W+H_GAP) + NODE_W/2;
+      n.y = startY + rowIdx*(NODE_H+V_GAP) + NODE_H/2;
+      n.vx = 0; n.vy = 0;
+    });
+  });
+
+  // ── STEP 4: Within each generation row, sort by horizontal relationships ──
+  // Spouses & siblings should be adjacent — do a simple sort by connectivity
+  genKeys.forEach(gen=>{
+    const row = genRows[gen];
+    if(row.length < 2) return;
+    // Build connection score within same gen
+    const order = [...row];
+    // Pull spouses/siblings next to each other
+    const placed = [order[0]];
+    const remaining = new Set(order.slice(1).map(n=>n.id));
+    while(remaining.size){
+      const last = placed[placed.length-1];
+      // Find closest connected neighbor in remaining
+      const connected = (adjGen[last.id]||[])
+        .filter(({id})=>remaining.has(id))
+        .map(({id})=>nodes.find(n=>n.id===id))
+        .filter(Boolean);
+      if(connected.length){
+        placed.push(connected[0]);
+        remaining.delete(connected[0].id);
+      } else {
+        // just take next remaining
+        const next = [...remaining][0];
+        placed.push(nodes.find(n=>n.id===next));
+        remaining.delete(next);
+      }
+    }
+    // Re-assign X positions
+    const rowW = placed.length * NODE_W + (placed.length-1) * H_GAP;
+    const startX = Math.max(NODE_W/2+10, (W - rowW)/2);
+    placed.forEach((n,i)=>{
+      n.x = startX + i*(NODE_W+H_GAP) + NODE_W/2;
+    });
+    genRows[gen] = placed;
+  });
+
+  // ── STEP 5: Draw connectors with curved paths ────────────────────────────
+  const linkEls = links.map(l=>{
+    const g = document.createElementNS(NS,'g');
+    const srcNode = nodes.find(n=>n.id===l.source);
+    const tgtNode = nodes.find(n=>n.id===l.target);
+
+    // Choose line style based on relation type
+    const gen0 = genMap[l.source]||0;
+    const gen1 = genMap[l.target]||0;
+    const sameGen = gen0===gen1;
+
+    const path = document.createElementNS(NS,'path');
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke-width','1.8');
+
+    if(sameGen){
+      // Horizontal bracket connector for same-generation (spouse/sibling)
+      path.setAttribute('stroke','#c9a84c');
+      path.setAttribute('stroke-dasharray','3,2');
+    } else {
+      // Vertical hierarchy connector
+      path.setAttribute('stroke','#3a3530');
+      path.setAttribute('stroke-dasharray','none');
+    }
+
+    // Relation label on midpoint
+    const labelBg = document.createElementNS(NS,'rect');
+    labelBg.setAttribute('rx','4');
+    labelBg.setAttribute('fill','#1a1814');
+    labelBg.setAttribute('stroke', sameGen?'#c9a84c':'#3a3530');
+    labelBg.setAttribute('stroke-width','0.8');
+
+    const label = document.createElementNS(NS,'text');
+    label.setAttribute('text-anchor','middle');
+    label.setAttribute('font-size','9');
+    label.setAttribute('font-family','DM Sans,sans-serif');
+    label.setAttribute('font-weight','500');
+    label.setAttribute('fill', sameGen?'#c9a84c':'#8a7a6a');
+    label.textContent = l.relation;
+
+    g.appendChild(path);
+    g.appendChild(labelBg);
+    g.appendChild(label);
+    gLinks.appendChild(g);
+    return {el:g, path, label, labelBg, source:l.source, target:l.target, sameGen};
+  });
+
+  // node map
+  const nodeMap = {};
+  nodes.forEach(n=>{ nodeMap[n.id]=n; });
+
+  // ── STEP 6: Draw node cards ──────────────────────────────────────────────
+  const nodeEls = {};
+  nodes.forEach(n=>{
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('class','tree-node-card');
+    g.setAttribute('data-id', n.id);
+    g.style.cursor = 'pointer';
+
+    const col = STATUS_COLORS[n.status] || STATUS_COLORS.default;
+
+    // Card bg
+    const rect = document.createElementNS(NS,'rect');
+    rect.setAttribute('width', NODE_W);
+    rect.setAttribute('height', NODE_H);
+    rect.setAttribute('rx', NODE_R);
+    rect.setAttribute('fill','#1a1814');
+    rect.setAttribute('stroke', col);
+    rect.setAttribute('stroke-width','1.5');
+
+    // Accent left bar
+    const bar = document.createElementNS(NS,'rect');
+    bar.setAttribute('width','3');
+    bar.setAttribute('height', NODE_H);
+    bar.setAttribute('rx','2');
+    bar.setAttribute('fill', col);
+
+    // Avatar circle
+    const circle = document.createElementNS(NS,'circle');
+    circle.setAttribute('cx', 26);
+    circle.setAttribute('cy', NODE_H/2);
+    circle.setAttribute('r', AVATAR);
+    circle.setAttribute('fill','#242018');
+    circle.setAttribute('stroke', col);
+    circle.setAttribute('stroke-width','1');
+
+    if(n.photo){
+      const defs = document.createElementNS(NS,'defs');
+      const clipPath = document.createElementNS(NS,'clipPath');
+      clipPath.setAttribute('id','clip-'+n.id);
+      const clipCircle = document.createElementNS(NS,'circle');
+      clipCircle.setAttribute('cx',26); clipCircle.setAttribute('cy',NODE_H/2); clipCircle.setAttribute('r',AVATAR);
+      clipPath.appendChild(clipCircle);
+      defs.appendChild(clipPath);
+      g.appendChild(defs);
+      const img = document.createElementNS(NS,'image');
+      img.setAttribute('href', n.photo);
+      img.setAttribute('x', 6); img.setAttribute('y', NODE_H/2-AVATAR);
+      img.setAttribute('width', AVATAR*2); img.setAttribute('height', AVATAR*2);
+      img.setAttribute('clip-path',`url(#clip-${n.id})`);
+      img.setAttribute('preserveAspectRatio','xMidYMid slice');
+      g.appendChild(rect); g.appendChild(bar); g.appendChild(circle); g.appendChild(img);
+    } else {
+      // Initial letter
+      const initText = document.createElementNS(NS,'text');
+      initText.setAttribute('x', 26);
+      initText.setAttribute('y', NODE_H/2 + 5);
+      initText.setAttribute('text-anchor','middle');
+      initText.setAttribute('font-size','15');
+      initText.setAttribute('font-weight','600');
+      initText.setAttribute('font-family','Cormorant Garamond,serif');
+      initText.setAttribute('fill', col);
+      initText.textContent = n.name.charAt(0).toUpperCase();
+      g.appendChild(rect); g.appendChild(bar); g.appendChild(circle); g.appendChild(initText);
+    }
+
+    // Name text
+    const nameText = document.createElementNS(NS,'text');
+    nameText.setAttribute('x', 52);
+    nameText.setAttribute('y', NODE_H/2 - 4);
+    nameText.setAttribute('font-size','11');
+    nameText.setAttribute('font-weight','600');
+    nameText.setAttribute('font-family','DM Sans,sans-serif');
+    nameText.setAttribute('fill','#e8e0d0');
+    // Truncate long names
+    const displayName = n.name.length > 16 ? n.name.substring(0,15)+'…' : n.name;
+    nameText.textContent = displayName;
+
+    // City text
+    const cityText = document.createElementNS(NS,'text');
+    cityText.setAttribute('x', 52);
+    cityText.setAttribute('y', NODE_H/2 + 10);
+    cityText.setAttribute('font-size','9');
+    cityText.setAttribute('font-family','DM Sans,sans-serif');
+    cityText.setAttribute('fill','#5a5245');
+    cityText.textContent = n.city ? n.city.substring(0,18) : '';
+
+    // Status dot
+    const sdot = document.createElementNS(NS,'circle');
+    sdot.setAttribute('cx', NODE_W - 10);
+    sdot.setAttribute('cy', 10);
+    sdot.setAttribute('r', 4);
+    sdot.setAttribute('fill', col);
+
+    g.appendChild(nameText); g.appendChild(cityText); g.appendChild(sdot);
+    gNodes.appendChild(g);
+    nodeEls[n.id] = {g, rect, n};
+
+    // Drag
+    let dragX=0, dragY=0, dragging=false;
+    g.addEventListener('mousedown', e=>{
+      e.stopPropagation();
+      dragging=true;
+      dragX=e.clientX; dragY=e.clientY;
+      svg.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', e=>{
+      if(!dragging) return;
+      const dx=(e.clientX-dragX)/treeTransform.scale;
+      const dy=(e.clientY-dragY)/treeTransform.scale;
+      n.x=(n.x||0)+dx; n.y=(n.y||0)+dy;
+      dragX=e.clientX; dragY=e.clientY;
+      if(treeSimulation) treeSimulation.alpha(0.1).restart();
+      updatePositions(linkEls, nodeEls, NODE_W, NODE_H);
+    });
+    window.addEventListener('mouseup', ()=>{ dragging=false; svg.classList.remove('dragging'); });
+
+    // Hover tooltip
+    g.addEventListener('mouseenter', e=>showTreeTooltip(n, e));
+    g.addEventListener('mousemove',  e=>moveTreeTooltip(e));
+    g.addEventListener('mouseleave', ()=>hideTreeTooltip());
+
+    // Click → go to client
+    g.addEventListener('click', e=>{
+      if(Math.abs(e.movementX)+Math.abs(e.movementY)<3){
+        goToClient(n.id);
+      }
+    });
+  });
+
+  // ── STEP 8: Add generation row labels on left margin ────────────────────
+  const GEN_LABELS = {'-2':'Grandparents','-1':'Parents','0':'This Generation','1':'Children','2':'Grandchildren'};
+  genKeys.forEach((gen, rowIdx)=>{
+    const row = genRows[gen];
+    if(!row||!row.length) return;
+    const rowY = row[0].y;
+    const lbl = document.createElementNS(NS,'text');
+    lbl.setAttribute('x', 8);
+    lbl.setAttribute('y', rowY+5);
+    lbl.setAttribute('font-size','10');
+    lbl.setAttribute('font-family','DM Sans,sans-serif');
+    lbl.setAttribute('font-weight','600');
+    lbl.setAttribute('fill','#3a3530');
+    lbl.setAttribute('text-anchor','start');
+    lbl.setAttribute('letter-spacing','0.5');
+    lbl.textContent = GEN_LABELS[String(gen)] || (gen<0?`${Math.abs(gen)} gen above`:`${gen} gen below`);
+    // Add faint horizontal rule
+    const rule = document.createElementNS(NS,'line');
+    rule.setAttribute('x1','0'); rule.setAttribute('y1', rowY - NODE_H/2 - 10);
+    rule.setAttribute('x2', W); rule.setAttribute('y2', rowY - NODE_H/2 - 10);
+    rule.setAttribute('stroke','#2a2520'); rule.setAttribute('stroke-width','1');
+    gLinks.insertBefore(rule, gLinks.firstChild);
+    gNodes.appendChild(lbl);
+  });
+
+  // ── STEP 7: Draw all positions + gentle horizontal settle ───────────────
+  // Gentle X-only settle to avoid same-gen overlap without disturbing rows
+  treeSimulation = { running:false, stop(){ this.running=false; } };
+  (function settleX(){
+    let alpha=1.0;
+    function step(){
+      if(alpha<0.01){ updatePositions(linkEls,nodeEls,NODE_W,NODE_H); return; }
+      alpha*=0.88;
+      // Only repel within the same generation row
+      genKeys.forEach(gen=>{
+        const row=genRows[gen];
+        for(let i=0;i<row.length;i++){
+          for(let j=i+1;j<row.length;j++){
+            const a=row[i],b=row[j];
+            const dx=(b.x-a.x)||0.1;
+            const minDist=NODE_W+H_GAP;
+            if(Math.abs(dx)<minDist){
+              const push=(minDist-Math.abs(dx))*0.15*alpha;
+              a.x-=push*(dx>0?1:-1);
+              b.x+=push*(dx>0?1:-1);
+            }
+          }
+        }
+      });
+      updatePositions(linkEls,nodeEls,NODE_W,NODE_H);
+      requestAnimationFrame(step);
+    }
+    step();
+  })();
+
+  // Pan behaviour on SVG background
+  let isPanning=false, panStartX=0, panStartY=0;
+  let baseTx=treeTransform.x, baseTy=treeTransform.y;
+  svg.addEventListener('mousedown', e=>{
+    if(e.target!==svg && e.target!==gMain && e.target!==gLinks && e.target!==gNodes) return;
+    isPanning=true; panStartX=e.clientX; panStartY=e.clientY;
+    baseTx=treeTransform.x; baseTy=treeTransform.y;
+    svg.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', e=>{
+    if(!isPanning) return;
+    treeTransform.x=baseTx+(e.clientX-panStartX);
+    treeTransform.y=baseTy+(e.clientY-panStartY);
+    gMain.setAttribute('transform',`translate(${treeTransform.x},${treeTransform.y}) scale(${treeTransform.scale})`);
+  });
+  window.addEventListener('mouseup', ()=>{ isPanning=false; svg.classList.remove('dragging'); });
+
+  // Scroll to zoom
+  svg.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const factor = e.deltaY<0 ? 1.1 : 0.9;
+    const rect   = svg.getBoundingClientRect();
+    const mx=(e.clientX-rect.left-treeTransform.x)/treeTransform.scale;
+    const my=(e.clientY-rect.top -treeTransform.y)/treeTransform.scale;
+    treeTransform.scale=Math.min(3, Math.max(0.2, treeTransform.scale*factor));
+    treeTransform.x=e.clientX-rect.left-mx*treeTransform.scale;
+    treeTransform.y=e.clientY-rect.top -my*treeTransform.scale;
+    gMain.setAttribute('transform',`translate(${treeTransform.x},${treeTransform.y}) scale(${treeTransform.scale})`);
+  },{passive:false});
+}
+
+function updatePositions(linkEls, nodeEls, NW, NH){
+  linkEls.forEach(l=>{
+    const a = nodeEls[l.source];
+    const b = nodeEls[l.target];
+    if(!a||!b) return;
+    const ax=a.n.x, ay=a.n.y, bx=b.n.x, by=b.n.y;
+    const mx=(ax+bx)/2, my=(ay+by)/2;
+
+    let d;
+    if(l.sameGen){
+      // Horizontal arc — curve up between same-gen nodes
+      const cpY = my - 28;
+      d=`M ${ax} ${ay} Q ${mx} ${cpY} ${bx} ${by}`;
+    } else {
+      // Vertical step connector: down from parent bottom, in to child top
+      const srcBottom = ay + NH/2;
+      const tgtTop    = by - NH/2;
+      const midY = (srcBottom+tgtTop)/2;
+      d=`M ${ax} ${srcBottom} L ${ax} ${midY} L ${bx} ${midY} L ${bx} ${tgtTop}`;
+    }
+    l.path.setAttribute('d', d);
+
+    // Label badge
+    const LW = Math.max(l.label.textContent.length*5.5+8, 30);
+    const LH = 14;
+    l.labelBg.setAttribute('x', mx-LW/2);
+    l.labelBg.setAttribute('y', my-LH/2-1);
+    l.labelBg.setAttribute('width', LW);
+    l.labelBg.setAttribute('height', LH);
+    l.label.setAttribute('x', mx);
+    l.label.setAttribute('y', my+4);
+  });
+  Object.values(nodeEls).forEach(({g, n})=>{
+    g.setAttribute('transform',`translate(${n.x-NW/2},${n.y-NH/2})`);
+  });
+}
+
+function treeZoom(factor){
+  const svg=document.getElementById('family-tree-svg');
+  const wrap=document.getElementById('tree-canvas-wrap');
+  const W=wrap.clientWidth/2, H=wrap.clientHeight/2;
+  const mx=(W-treeTransform.x)/treeTransform.scale;
+  const my=(H-treeTransform.y)/treeTransform.scale;
+  treeTransform.scale=Math.min(3,Math.max(0.2,treeTransform.scale*factor));
+  treeTransform.x=W-mx*treeTransform.scale;
+  treeTransform.y=H-my*treeTransform.scale;
+  const gMain=document.getElementById('tree-g-main');
+  if(gMain) gMain.setAttribute('transform',`translate(${treeTransform.x},${treeTransform.y}) scale(${treeTransform.scale})`);
+}
+
+function resetTreeView(){
+  treeTransform={x:0,y:0,scale:1};
+  renderFamilyTree();
+}
+
+function focusTreeOnClient(id){
+  if(!id) return;
+  const c=clients.find(x=>x.id===id);
+  if(!c||c.x===undefined) return;
+  const wrap=document.getElementById('tree-canvas-wrap');
+  const W=wrap.clientWidth/2, H=wrap.clientHeight/2;
+  treeTransform.scale=1.2;
+  treeTransform.x=W-c.x*treeTransform.scale;
+  treeTransform.y=H-c.y*treeTransform.scale;
+  const gMain=document.getElementById('tree-g-main');
+  if(gMain) gMain.setAttribute('transform',`translate(${treeTransform.x},${treeTransform.y}) scale(${treeTransform.scale})`);
+}
+
+function treeSearch(q){
+  const nodes=document.querySelectorAll('.tree-node-card');
+  if(!q){ nodes.forEach(n=>n.style.opacity='1'); return; }
+  q=q.toLowerCase();
+  nodes.forEach(n=>{
+    const id=n.getAttribute('data-id');
+    const c=clients.find(x=>x.id===id);
+    n.style.opacity=(c&&c.name.toLowerCase().includes(q))?'1':'0.18';
+  });
+}
+
+function showTreeTooltip(n, e){
+  const tip=document.getElementById('tree-tooltip');
+  const wrap=document.getElementById('tree-canvas-wrap');
+  const rect=wrap.getBoundingClientRect();
+  const c=clients.find(x=>x.id===n.id);
+  if(!c)return;
+  const links_count=familyLinks.filter(l=>l.clientA===c.id||l.clientB===c.id).length;
+  const lastAct=getLastActivityDate(c.id);
+  const daysAgo=lastAct?Math.floor((Date.now()-lastAct)/86400000):null;
+  tip.innerHTML=`
+    <div class="tree-tooltip-name">${esc(c.name)}</div>
+    <div class="tree-tooltip-row"><span class="tree-tooltip-label">Status</span><span class="tree-tooltip-val" style="color:${STATUS_COLORS[c.status]||'#e8e0d0'}">${cap(c.status)}</span></div>
+    ${c.city?`<div class="tree-tooltip-row"><span class="tree-tooltip-label">City</span><span class="tree-tooltip-val">${esc(c.city)}</span></div>`:''}
+    ${c.phone?`<div class="tree-tooltip-row"><span class="tree-tooltip-label">Phone</span><span class="tree-tooltip-val">${esc(c.phone)}</span></div>`:''}
+    <div class="tree-tooltip-row"><span class="tree-tooltip-label">Links</span><span class="tree-tooltip-val">${links_count} connection${links_count!==1?'s':''}</span></div>
+    ${daysAgo!==null?`<div class="tree-tooltip-row"><span class="tree-tooltip-label">Activity</span><span class="tree-tooltip-val">${daysAgo===0?'Today':`${daysAgo}d ago`}</span></div>`:''}
+    <div style="font-size:10px;color:var(--text3);margin-top:5px;">Click to open profile</div>`;
+  tip.style.display='block';
+  moveTreeTooltip(e, rect);
+}
+function moveTreeTooltip(e, rect){
+  if(!rect){ const wrap=document.getElementById('tree-canvas-wrap'); rect=wrap.getBoundingClientRect(); }
+  const tip=document.getElementById('tree-tooltip');
+  let tx=e.clientX-rect.left+14, ty=e.clientY-rect.top+14;
+  if(tx+230>rect.width) tx=e.clientX-rect.left-230;
+  if(ty+160>rect.height) ty=e.clientY-rect.top-160;
+  tip.style.left=tx+'px'; tip.style.top=ty+'px';
+}
+function hideTreeTooltip(){ document.getElementById('tree-tooltip').style.display='none'; }
+
+// INIT
+document.getElementById('search-input').addEventListener('input',renderClientList);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    ['client-modal-overlay','txn-modal-overlay','int-modal-overlay','family-modal-overlay','data-modal-overlay','vcard-modal-overlay'].forEach(id=>document.getElementById(id).classList.remove('open'));
+  }
+});
+// close family search on outside click
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#family-search')&&!e.target.closest('#family-search-results')){
+    const r=document.getElementById('family-search-results');
+    if(r)r.style.display='none';
+  }
+});
+runAutoStatusEngine(true);
+renderClientList();
+renderClientStats();
+</script>
+
+<script>
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js')
+      .then(()=>console.log('ClientFlow SW registered'))
+      .catch(e=>console.log('SW error:',e));
+  }
+</script>
+</body>
+</html>
